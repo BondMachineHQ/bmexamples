@@ -33,12 +33,30 @@ endif
 
 ifeq ($(shell [[ $(BOARD) == "max1000" || $(BOARD) == "de10nano" ]] && echo true ),true)
 	TOOLCHAIN=quartus
-	PROJECT_TARGET=
+	PROJECT_TARGET=$(WORKING_DIR)/quartus_creation
+	SYNTESIS_TARGET=$(WORKING_DIR)/quartus_syntesis
+	IMPLEMENTATION_TARGET=$(WORKING_DIR)/quartus_implementation
+	BITSTREAM_TARGET=$(WORKING_DIR)/quartus_bitstream
+	PROGRAM_TARGET=$(WORKING_DIR)/quartus_program
 endif
 
 ifeq ($(shell [[ $(BOARD) == "ice40lp1k" || $(BOARD) == "icefun" ]] && echo true ),true)
 	TOOLCHAIN=icestorm
-	PROJECT_TARGET=
+	PROJECT_TARGET=$(WORKING_DIR)/icestorm_creation
+	SYNTESIS_TARGET=$(WORKING_DIR)/icestorm_syntesis
+	IMPLEMENTATION_TARGET=$(WORKING_DIR)/icestorm_implementation
+	BITSTREAM_TARGET=$(WORKING_DIR)/icestorm_bitstream
+	PROGRAM_TARGET=$(WORKING_DIR)/icestorm_program
+endif
+
+ifeq ($(shell [[ $(BOARD) == "icefun" ]] && echo true ),true)
+	BOARD_MODEL="hx8k"
+	BOARD_PACKAGE="cb132"
+endif
+
+ifeq ($(shell [[ $(BOARD) == "ice40lp1k" ]] && echo true ),true)
+	BOARD_MODEL="lp1k"
+	BOARD_PACKAGE="qn84"
 endif
 
 
@@ -258,7 +276,7 @@ bondmachine: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) check-working-di
 hdl: $(WORKING_DIR)/hdl_target | $(WORKING_DIR) check-working-dir
 project: $(PROJECT_TARGET) | $(WORKING_DIR) check-working-dir
 syntesis: $(SYNTESIS_TARGET) | $(WORKING_DIR) check-working-dir
-implementation: $(IMPLEMENTATION_TARGET | $(WORKING_DIR) check-working-dir
+implementation: $(IMPLEMENTATION_TARGET) | $(WORKING_DIR) check-working-dir
 bitstream: $(BITSTREAM_TARGET) | $(WORKING_DIR) check-working-dir
 bmapp: $(WORKING_DIR)/bmapp_target | $(WORKING_DIR) check-working-dir
 
@@ -300,7 +318,7 @@ $(WORKING_DIR)/bmapp_target: $(WORKING_DIR)/hdl_target | $(WORKING_DIR) check-wo
 	rm -rf $(WORKING_DIR)/app
 	mkdir -p $(WORKING_DIR)/app
 	cp $(BMAPI_GOAPP) $(WORKING_DIR)/app
-	cd $(WORKING_DIR)/app ; go mod init $(BMAPI_GOMOD) ; go mod edit -replace git.fisica.unipg.it/bondmachine/bmapiusbuart.git=../bmapi
+	cd $(WORKING_DIR)/app ; go mod init $(BMAPI_GOMOD) ; go mod edit -replace git.fisica.unipg.it/bondmachine/bmapiusbuart.git=../bmapi ; go mod tidy
 	cd $(WORKING_DIR)/app ; go build
 	@touch $(WORKING_DIR)/bmapp_target
 	@echo -e "$(PJP)$(INFOC)[BondMachine App compiling end]$(DEFC)"
@@ -427,6 +445,91 @@ regressionreset: regressionbmreset regressionhdlreset
 #	vvp $(WORKING_DIR)/bondmachine_simulation.vvp 
 #	gtkwave $(WORKING_DIR)/bondmachine.vcd
 
+##### Quartus toolchain targets
+
+$(WORKING_DIR)/$(BOARD).pcftochange: | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	cp $(BOARD).pcf $(WORKING_DIR)
+	@touch $(WORKING_DIR)/contraint_target
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - copy constraints end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/quartus_creation:  $(WORKING_DIR)/$(BOARD).pcftochange $(WORKING_DIR)/hdl_target | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - project creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/quartus_creation
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - project creation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/quartus_syntesis: $(WORKING_DIR)/quartus_creation | $(WORKING_DIR)  check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - syntesis begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/quartus_syntesis
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - syntesis end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/quartus_implementation: $(WORKING_DIR)/quartus_syntesis | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - implementation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/quartus_implementation
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - implementation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/quartus_bitstream: $(WORKING_DIR)/quartus_implementation | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - write bitstream begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/quartus_bitstream
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - write bitstream end]$(DEFC)"
+	@echo
+
+.PHONY: $(WORKING_DIR)/quartus_program
+$(WORKING_DIR)/quartus_program: $(WORKING_DIR)/quartus_bitstream | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/quartus_program
+	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - programming end]$(DEFC)"
+	@echo
+
+##### Icestorm toolchain targets
+
+$(WORKING_DIR)/$(BOARD).pcf: | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	cp $(BOARD).pcf $(WORKING_DIR)
+	@touch $(WORKING_DIR)/contraint_target
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - copy constraints end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/icestorm_creation:  $(WORKING_DIR)/$(BOARD).pcf $(WORKING_DIR)/hdl_target | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - project creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/icestorm_creation
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - project creation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/icestorm_syntesis: $(WORKING_DIR)/icestorm_creation | $(WORKING_DIR)  check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - syntesis begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	yosys -p "synth_ice40 -top bondmachine_main -json $(WORKING_DIR)/bondmachine_icestorm.json" $(WORKING_DIR)/bondmachine.sv
+	@touch $(WORKING_DIR)/icestorm_syntesis
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - syntesis end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/icestorm_implementation: $(WORKING_DIR)/icestorm_syntesis | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - implementation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	nextpnr-ice40 -r --$(BOARD_MODEL) --json $(WORKING_DIR)/bondmachine_icestorm.json --package $(BOARD_PACKAGE) --asc $(WORKING_DIR)/bondmachine.asc --opt-timing --pcf $(WORKING_DIR)/$(BOARD).pcf
+	@touch $(WORKING_DIR)/icestorm_implementation
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - implementation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/icestorm_bitstream: $(WORKING_DIR)/icestorm_implementation | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - write bitstream begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	icepack $(WORKING_DIR)/bondmachine.asc $(WORKING_DIR)/bondmachine.bin
+	@touch $(WORKING_DIR)/icestorm_bitstream
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - write bitstream end]$(DEFC)"
+	@echo
+
+.PHONY: $(WORKING_DIR)/icestorm_program
+$(WORKING_DIR)/icestorm_program: $(WORKING_DIR)/icestorm_bitstream | $(WORKING_DIR) check-working-dir
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(BOARD),icefun)
+	iceFUNprog $(WORKING_DIR)/bondmachine.bin
+endif
+	@touch $(WORKING_DIR)/icestorm_program
+	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - programming end]$(DEFC)"
+	@echo
 
 ##### Vivado toolchain targets
 
