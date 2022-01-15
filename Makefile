@@ -546,7 +546,7 @@ $(WORKING_DIR)/vivado_creation:  $(WORKING_DIR)/$(BOARD).xdc $(WORKING_DIR)/hdl_
 	cat $(ROOTDIR)/$(BOARD)_template_creation.tcl >> $(WORKING_DIR)/vivado-script-creation.tcl
 	rm -rf $(WORKING_DIR)/bondmachine
 	rm -rf $(WORKING_DIR)/vivado.*
-	bash -c "cd $(WORKING_DIR) ; start_vivado.sh vivado-script-creation.tcl"
+	bash -c "cd $(WORKING_DIR) ; vivado -mode tcl -source vivado-script-creation.tcl"
 	@touch $(WORKING_DIR)/vivado_creation
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - project creation end]$(DEFC)"
 	@echo
@@ -555,7 +555,7 @@ $(WORKING_DIR)/vivado_syntesis: $(WORKING_DIR)/vivado_creation | $(WORKING_DIR) 
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - syntesis begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	echo "open_project \"$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.xpr\"" > $(WORKING_DIR)/vivado-script-syntesis.tcl
 	cat $(ROOTDIR)/$(BOARD)_template_syntesis.tcl >> $(WORKING_DIR)/vivado-script-syntesis.tcl
-	bash -c "cd $(WORKING_DIR) ; start_vivado.sh vivado-script-syntesis.tcl"
+	bash -c "cd $(WORKING_DIR) ; vivado -mode tcl -source vivado-script-syntesis.tcl"
 	@touch $(WORKING_DIR)/vivado_syntesis
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - syntesis end]$(DEFC)"
 	@echo
@@ -564,7 +564,7 @@ $(WORKING_DIR)/vivado_implementation: $(WORKING_DIR)/vivado_syntesis | $(WORKING
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - implementation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	echo "open_project \"$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.xpr\"" > $(WORKING_DIR)/vivado-script-implementation.tcl
 	cat $(ROOTDIR)/$(BOARD)_template_implementation.tcl >> $(WORKING_DIR)/vivado-script-implementation.tcl
-	bash -c "cd $(WORKING_DIR) ; start_vivado.sh vivado-script-implementation.tcl"
+	bash -c "cd $(WORKING_DIR) ; vivado -mode tcl -source vivado-script-implementation.tcl"
 	@touch $(WORKING_DIR)/vivado_implementation
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - implementation end]$(DEFC)"
 	@echo
@@ -573,7 +573,7 @@ $(WORKING_DIR)/vivado_bitstream: $(WORKING_DIR)/vivado_implementation | $(WORKIN
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - write bitstream begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	echo "open_project \"$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.xpr\"" > $(WORKING_DIR)/vivado-script-bitstream.tcl
 	cat $(ROOTDIR)/$(BOARD)_template_bitstream.tcl >> $(WORKING_DIR)/vivado-script-bitstream.tcl
-	bash -c "cd $(WORKING_DIR) ; start_vivado.sh vivado-script-bitstream.tcl"
+	bash -c "cd $(WORKING_DIR) ; vivado -mode tcl -source vivado-script-bitstream.tcl"
 	@touch $(WORKING_DIR)/vivado_bitstream
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - write bitstream end]$(DEFC)"
 	@echo
@@ -590,7 +590,7 @@ ifeq ($(BOARD),basys3)
 		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices] 0]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
 	cat $(ROOTDIR)/$(BOARD)_template_program_2.tcl >> $(WORKING_DIR)/vivado-script-program.tcl
-	bash -c "cd $(WORKING_DIR) ; start_vivado.sh vivado-script-program.tcl"
+	bash -c "cd $(WORKING_DIR) ; vivado -mode tcl -source vivado-script-program.tcl"
 	@touch $(WORKING_DIR)/vivado_program
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - programming end]$(DEFC)"
 	@echo
