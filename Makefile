@@ -83,7 +83,7 @@ ifneq ($(SOURCE_BASM), )
 ifeq ($(MAINTARGET), cluster)
 $(error Unsupported)
 endif
-	SOURCE_COMMAND=basm $(BASM_ARGS) -o $(WORKING_DIR)/bondmachine.json $(SOURCE_BASM)
+	SOURCE_COMMAND=basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(SOURCE_BASM)
 	SOURCE=$(SOURCE_BASM)
 endif
 
@@ -149,7 +149,7 @@ ifneq ($(SOURCE_NEURALBOND), )
 ifeq ($(MAINTARGET), cluster)
 $(error Unsupported)
 endif
-	SOURCE_COMMAND=neuralbond -net-file $(SOURCE_NEURALBOND) -save-basm $(WORKING_DIR)/bondmachine.basm ; basm $(BASM_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(NEURALBOND_LIBRARY)/*.basm
+	SOURCE_COMMAND=neuralbond -net-file $(SOURCE_NEURALBOND) -neuron-lib-path $(NEURALBOND_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(NEURALBOND_ARGS) $(BMINFO_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(NEURALBOND_LIBRARY)/*.basm
 	SOURCE=$(SOURCE_NEURALBOND)
 endif
 
@@ -178,7 +178,7 @@ endif
 ifneq ($(SHOWRENDERER), )
 	SHOW_RENDERER=$(SHOWRENDERER)
 else
-	SHOW_RENDERER=dot
+	SHOW_RENDERER=dot -Txlib
 endif
 
 ifneq ($(BOOLEANARGS), )
@@ -322,6 +322,12 @@ else
 	SIM_REGRESSION_TARGETS=
 endif
 
+ifneq ($(BMINFO), )
+        BMINFO_ARGS=-bminfo-file $(BMINFO)
+else
+        BMINFO_ARGS=
+endif
+
 
 
 ##### Placeholders targets
@@ -351,6 +357,9 @@ program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
 
 ##### Toolchain independent targets
 
+name:
+	@echo $(PROJECT_NAME)
+
 $(WORKING_DIR):
 	@echo -e "$(PJP)$(INFOC)[Working directory creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	mkdir -p $(WORKING_DIR)
@@ -367,7 +376,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2KBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2KBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
@@ -398,8 +407,26 @@ bmapprun: $(WORKING_DIR)/bmapp_target program | $(WORKING_DIR) checkenv
 
 show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -emit-dot $(SHOW_ARGS) | $(SHOW_RENDERER) -Txlib
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -emit-dot $(SHOW_ARGS) $(BMINFO_ARGS) | $(SHOW_RENDERER)
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show end]$(DEFC)"
+	@echo
+
+report: $(WORKING_DIR)/vivado_design_implementation  | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine report begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@echo -e "{" > $(WORKING_DIR)/report.json
+	@echo -e '\t"cps": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -enum-processors`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"bonds": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -enum-bonds`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"luts": '`grep -F -e LUTs $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_utilization_placed.rpt | cut -d '|' -f 3 | sed 's/ //g'`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"regs": '`grep -F -e 'Slice Registers' $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_utilization_placed.rpt | cut -d '|' -f 3 | sed 's/ //g' | head -n 1`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"power": '`grep -F -e 'bondmachineip_0' $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_power_routed.rpt | cut -d "|" -f 3 | sed 's/ //g'| head -n 1`',' >> $(WORKING_DIR)/report.json
+ifeq ($(BOARD),zedboard)
+	@echo -e '\t"clock_freq": 100' >> $(WORKING_DIR)/report.json
+endif
+ifeq ($(BOARD),ebaz4205)
+	@echo -e '\t"clock_freq": 50' >> $(WORKING_DIR)/report.json
+endif
+	@echo -e "}" >> $(WORKING_DIR)/report.json
+	@echo -e "$(PJP)$(INFOC)[BondMachine report end]$(DEFC)"
 	@echo
 
 simulate: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
@@ -413,6 +440,22 @@ endif
 	cp $(SIMBOX_FILE) $(WORKING_DIR)
 	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -sim -simbox-file $(WORKING_DIR)/$(SIMBOX_FILE) -sim-interactions $(SIM_INTERACTIONS) $(SIM_OPTIONS) | tee $(WORKING_DIR)/simulate.out
 	@echo -e "$(PJP)$(INFOC)[BondMachine simulation end]$(DEFC)"
+	@echo
+
+
+simbatch: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
+ifndef SIMBATCH_INPUT_DATASET
+	$(error SIMBATCH_INPUT_DATASET is undefined)
+endif
+ifndef SIMBATCH_OUTPUT_DATASET
+	$(error SIMBATCH_OUTPUT_DATASET is undefined)
+endif
+ifndef SIMBATCH_ITERACTIONS
+	$(error SIMBATCH_ITERACTIONS is undefined)
+endif
+	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	./simbatch.py -w $(WORKING_DIR) -i $(SIMBATCH_INPUT_DATASET) -o $(SIMBATCH_OUTPUT_DATASET) -s $(SIMBATCH_ITERACTIONS) $(SIMBATCH_ARGS)
+	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch end]$(DEFC)"
 	@echo
 
 simvideo: simulate
