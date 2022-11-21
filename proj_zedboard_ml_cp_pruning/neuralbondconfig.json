@@ -2,8 +2,8 @@
   "Params": {
     "expprec": "20"
   },
-  "Pruned": ["node_0_0"],
-  "Collapsed": [["node_0_1","node_3_0"]],
+  "Pruned": [],
+  "Collapsed": [],
   "Debug": false,
   "Verbose": false,
   "NeuronLibPath": "neurons"

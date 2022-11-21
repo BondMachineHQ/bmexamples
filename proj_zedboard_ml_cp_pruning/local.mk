@@ -7,7 +7,6 @@ BMINFO=bminfo.json
 BOARD=zedboard
 MAPFILE=zedboard_maps.json
 SHOWARGS=-dot-detail 5
-SHOWRENDERER=dot -Txlib
 VERILOG_OPTIONS=-comment-verilog
 #BASM_ARGS=-d
 BENCHCORE=i0,p0o0
