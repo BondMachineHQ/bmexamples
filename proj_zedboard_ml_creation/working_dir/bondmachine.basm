@@ -1,0 +1,137 @@
+%meta bmdef     global registersize:32
+%meta fidef node_0_0 fragment:terminal
+%meta filinkdef input_0 type:fl
+%meta filinkatt input_0 fi:node_0_0, type:input, index:0
+%meta filinkatt input_0 fi:ext, type:input, index:0
+%meta fidef node_0_1 fragment:terminal
+%meta filinkdef input_1 type:fl
+%meta filinkatt input_1 fi:node_0_1, type:input, index:0
+%meta filinkatt input_1 fi:ext, type:input, index:1
+%meta fidef node_0_2 fragment:terminal
+%meta filinkdef input_2 type:fl
+%meta filinkatt input_2 fi:node_0_2, type:input, index:0
+%meta filinkatt input_2 fi:ext, type:input, index:2
+%meta fidef node_0_3 fragment:terminal
+%meta filinkdef input_3 type:fl
+%meta filinkatt input_3 fi:node_0_3, type:input, index:0
+%meta filinkatt input_3 fi:ext, type:input, index:3
+%meta fidef node_1_0 fragment:linear, inputs:4, bias:0f0.085374
+%meta fidef node_2_0 fragment:summation, inputs:1, bias:0f0.161181
+%meta fidef node_2_1 fragment:summation, inputs:1, bias:0f-0.161181
+%meta fidef node_3_0 fragment:softmax, inputs:2, bias:0f0.000000, pos:0, expprec:20
+%meta fidef node_3_1 fragment:softmax, inputs:2, bias:0f0.000000, pos:1, expprec:20
+%meta fidef node_4_0 fragment:terminal
+%meta filinkdef output_0 type:fl
+%meta filinkatt output_0 fi:node_4_0, type:output, index:0
+%meta filinkatt output_0 fi:ext, type:output, index:0
+%meta fidef node_4_1 fragment:terminal
+%meta filinkdef output_1 type:fl
+%meta filinkatt output_1 fi:node_4_1, type:output, index:0
+%meta filinkatt output_1 fi:ext, type:output, index:1
+%meta fidef weightfi_0_0__1_0 fragment:weight, weight:0f-0.865941
+%meta filinkdef upweightfi_0_0__1_0 type:fi
+%meta filinkdef downweightfi_0_0__1_0 type:fi
+%meta filinkatt downweightfi_0_0__1_0 fi:weightfi_0_0__1_0, type:input, index:0
+%meta filinkatt downweightfi_0_0__1_0 fi:node_0_0, type:output, index:0
+%meta filinkatt upweightfi_0_0__1_0 fi:node_1_0, type:input, index:0
+%meta filinkatt upweightfi_0_0__1_0 fi:weightfi_0_0__1_0, type:output, index:0
+%meta fidef weightfi_0_1__1_0 fragment:weight, weight:0f-0.902214
+%meta filinkdef upweightfi_0_1__1_0 type:fi
+%meta filinkdef downweightfi_0_1__1_0 type:fi
+%meta filinkatt downweightfi_0_1__1_0 fi:weightfi_0_1__1_0, type:input, index:0
+%meta filinkatt downweightfi_0_1__1_0 fi:node_0_1, type:output, index:0
+%meta filinkatt upweightfi_0_1__1_0 fi:node_1_0, type:input, index:1
+%meta filinkatt upweightfi_0_1__1_0 fi:weightfi_0_1__1_0, type:output, index:0
+%meta fidef weightfi_0_2__1_0 fragment:weight, weight:0f-0.820400
+%meta filinkdef upweightfi_0_2__1_0 type:fi
+%meta filinkdef downweightfi_0_2__1_0 type:fi
+%meta filinkatt downweightfi_0_2__1_0 fi:weightfi_0_2__1_0, type:input, index:0
+%meta filinkatt downweightfi_0_2__1_0 fi:node_0_2, type:output, index:0
+%meta filinkatt upweightfi_0_2__1_0 fi:node_1_0, type:input, index:2
+%meta filinkatt upweightfi_0_2__1_0 fi:weightfi_0_2__1_0, type:output, index:0
+%meta fidef weightfi_0_3__1_0 fragment:weight, weight:0f0.270385
+%meta filinkdef upweightfi_0_3__1_0 type:fi
+%meta filinkdef downweightfi_0_3__1_0 type:fi
+%meta filinkatt downweightfi_0_3__1_0 fi:weightfi_0_3__1_0, type:input, index:0
+%meta filinkatt downweightfi_0_3__1_0 fi:node_0_3, type:output, index:0
+%meta filinkatt upweightfi_0_3__1_0 fi:node_1_0, type:input, index:3
+%meta filinkatt upweightfi_0_3__1_0 fi:weightfi_0_3__1_0, type:output, index:0
+%meta fidef weightfi_1_0__2_0 fragment:weight, weight:0f-0.803579
+%meta filinkdef upweightfi_1_0__2_0 type:fi
+%meta filinkdef downweightfi_1_0__2_0 type:fi
+%meta filinkatt downweightfi_1_0__2_0 fi:weightfi_1_0__2_0, type:input, index:0
+%meta filinkatt downweightfi_1_0__2_0 fi:node_1_0, type:output, index:0
+%meta filinkatt upweightfi_1_0__2_0 fi:node_2_0, type:input, index:0
+%meta filinkatt upweightfi_1_0__2_0 fi:weightfi_1_0__2_0, type:output, index:0
+%meta fidef weightfi_1_0__2_1 fragment:weight, weight:0f-0.201448
+%meta filinkdef upweightfi_1_0__2_1 type:fi
+%meta filinkdef downweightfi_1_0__2_1 type:fi
+%meta filinkatt downweightfi_1_0__2_1 fi:weightfi_1_0__2_1, type:input, index:0
+%meta filinkatt downweightfi_1_0__2_1 fi:node_1_0, type:output, index:0
+%meta filinkatt upweightfi_1_0__2_1 fi:node_2_1, type:input, index:0
+%meta filinkatt upweightfi_1_0__2_1 fi:weightfi_1_0__2_1, type:output, index:0
+%meta fidef weightfi_2_0__3_0 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_2_0__3_0 type:fi
+%meta filinkdef downweightfi_2_0__3_0 type:fi
+%meta filinkatt downweightfi_2_0__3_0 fi:weightfi_2_0__3_0, type:input, index:0
+%meta filinkatt downweightfi_2_0__3_0 fi:node_2_0, type:output, index:0
+%meta filinkatt upweightfi_2_0__3_0 fi:node_3_0, type:input, index:0
+%meta filinkatt upweightfi_2_0__3_0 fi:weightfi_2_0__3_0, type:output, index:0
+%meta fidef weightfi_2_1__3_0 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_2_1__3_0 type:fi
+%meta filinkdef downweightfi_2_1__3_0 type:fi
+%meta filinkatt downweightfi_2_1__3_0 fi:weightfi_2_1__3_0, type:input, index:0
+%meta filinkatt downweightfi_2_1__3_0 fi:node_2_1, type:output, index:0
+%meta filinkatt upweightfi_2_1__3_0 fi:node_3_0, type:input, index:1
+%meta filinkatt upweightfi_2_1__3_0 fi:weightfi_2_1__3_0, type:output, index:0
+%meta fidef weightfi_2_0__3_1 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_2_0__3_1 type:fi
+%meta filinkdef downweightfi_2_0__3_1 type:fi
+%meta filinkatt downweightfi_2_0__3_1 fi:weightfi_2_0__3_1, type:input, index:0
+%meta filinkatt downweightfi_2_0__3_1 fi:node_2_0, type:output, index:0
+%meta filinkatt upweightfi_2_0__3_1 fi:node_3_1, type:input, index:0
+%meta filinkatt upweightfi_2_0__3_1 fi:weightfi_2_0__3_1, type:output, index:0
+%meta fidef weightfi_2_1__3_1 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_2_1__3_1 type:fi
+%meta filinkdef downweightfi_2_1__3_1 type:fi
+%meta filinkatt downweightfi_2_1__3_1 fi:weightfi_2_1__3_1, type:input, index:0
+%meta filinkatt downweightfi_2_1__3_1 fi:node_2_1, type:output, index:0
+%meta filinkatt upweightfi_2_1__3_1 fi:node_3_1, type:input, index:1
+%meta filinkatt upweightfi_2_1__3_1 fi:weightfi_2_1__3_1, type:output, index:0
+%meta fidef weightfi_3_0__4_0 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_3_0__4_0 type:fi
+%meta filinkdef downweightfi_3_0__4_0 type:fi
+%meta filinkatt downweightfi_3_0__4_0 fi:weightfi_3_0__4_0, type:input, index:0
+%meta filinkatt downweightfi_3_0__4_0 fi:node_3_0, type:output, index:0
+%meta filinkatt upweightfi_3_0__4_0 fi:node_4_0, type:input, index:0
+%meta filinkatt upweightfi_3_0__4_0 fi:weightfi_3_0__4_0, type:output, index:0
+%meta fidef weightfi_3_1__4_1 fragment:weight, weight:0f1.000000
+%meta filinkdef upweightfi_3_1__4_1 type:fi
+%meta filinkdef downweightfi_3_1__4_1 type:fi
+%meta filinkatt downweightfi_3_1__4_1 fi:weightfi_3_1__4_1, type:input, index:0
+%meta filinkatt downweightfi_3_1__4_1 fi:node_3_1, type:output, index:0
+%meta filinkatt upweightfi_3_1__4_1 fi:node_4_1, type:input, index:0
+%meta filinkatt upweightfi_3_1__4_1 fi:weightfi_3_1__4_1, type:output, index:0
+%meta cpdef weightfi_1_0__2_1 fragcollapse:weightfi_1_0__2_1
+%meta cpdef weightfi_0_1__1_0 fragcollapse:weightfi_0_1__1_0
+%meta cpdef node_3_1 fragcollapse:node_3_1
+%meta cpdef weightfi_3_0__4_0 fragcollapse:weightfi_3_0__4_0
+%meta cpdef node_0_2 fragcollapse:node_0_2
+%meta cpdef weightfi_3_1__4_1 fragcollapse:weightfi_3_1__4_1
+%meta cpdef node_0_0 fragcollapse:node_0_0
+%meta cpdef node_2_0 fragcollapse:node_2_0
+%meta cpdef node_0_1 fragcollapse:node_0_1
+%meta cpdef weightfi_2_0__3_1 fragcollapse:weightfi_2_0__3_1
+%meta cpdef weightfi_0_2__1_0 fragcollapse:weightfi_0_2__1_0
+%meta cpdef node_1_0 fragcollapse:node_1_0
+%meta cpdef node_3_0 fragcollapse:node_3_0
+%meta cpdef node_4_0 fragcollapse:node_4_0
+%meta cpdef node_4_1 fragcollapse:node_4_1
+%meta cpdef weightfi_2_1__3_0 fragcollapse:weightfi_2_1__3_0
+%meta cpdef node_0_3 fragcollapse:node_0_3
+%meta cpdef weightfi_0_3__1_0 fragcollapse:weightfi_0_3__1_0
+%meta cpdef weightfi_1_0__2_0 fragcollapse:weightfi_1_0__2_0
+%meta cpdef node_2_1 fragcollapse:node_2_1
+%meta cpdef weightfi_0_0__1_0 fragcollapse:weightfi_0_0__1_0
+%meta cpdef weightfi_2_0__3_0 fragcollapse:weightfi_2_0__3_0
+%meta cpdef weightfi_2_1__3_1 fragcollapse:weightfi_2_1__3_1
