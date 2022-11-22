@@ -1,0 +1,10 @@
+{
+  "Params": {
+    "expprec": "20"
+  },
+  "Pruned": [],
+  "Collapsed": [],
+  "Debug": false,
+  "Verbose": false,
+  "NeuronLibPath": "neurons"
+}
