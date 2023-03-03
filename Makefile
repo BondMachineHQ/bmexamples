@@ -236,7 +236,11 @@ endif
 ifneq ($(USE_BMAPI), )
 ifeq ($(BMAPI_FLAVOR),aximm)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR)
-else
+endif
+ifeq ($(BMAPI_FLAVOR),axist)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-framework $(BMAPI_FRAMEWORK) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR)
+endif
+ifeq ($(BMAPI_FLAVOR),uartusb)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR)
 endif
 else
@@ -596,7 +600,7 @@ regressionreset: regressionbmreset regressionhdlreset regressionsimreset
 $(WORKING_DIR)/$(BOARD).sdc: | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	cp $(BOARD).sdc $(WORKING_DIR)
-	@touch $(WORKING_DIR)/contraint_target
+	@touch $(WORKING_DIR)/constraint_target
 	@echo -e "$(PJP)$(INFOC)[Quartus toolchain - copy constraints end]$(DEFC)"
 	@echo
 
@@ -638,7 +642,7 @@ $(WORKING_DIR)/quartus_program: $(WORKING_DIR)/quartus_bitstream | $(WORKING_DIR
 $(WORKING_DIR)/$(BOARD).pcf: | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	cp $(BOARD).pcf $(WORKING_DIR)
-	@touch $(WORKING_DIR)/contraint_target
+	@touch $(WORKING_DIR)/constraint_target
 	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - copy constraints end]$(DEFC)"
 	@echo
 
@@ -688,7 +692,7 @@ endif
 $(WORKING_DIR)/$(BOARD).xdc: | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	cp $(BOARD).xdc $(WORKING_DIR)
-	@touch $(WORKING_DIR)/contraint_target
+	@touch $(WORKING_DIR)/constraint_target
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - copy constraints end]$(DEFC)"
 	@echo
 
@@ -749,24 +753,37 @@ endif
 
 $(WORKING_DIR)/vivado_accelerator:  $(WORKING_DIR)/hdl_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - IP accelerator creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	cat $(ROOTDIR)/$(BOARD)_template_accelerator.tcl >> $(WORKING_DIR)/vivado-script-accelerator.tcl
-	cp -a $(ROOTDIR)/vivadoAXIcomment.sh $(WORKING_DIR)/vivadoAXIcomment.sh
+ifeq ($(BMAPI_FLAVOR),)
+	$(error BMAPI_FLAVOR is undefined)
+endif
+	cat $(ROOTDIR)/$(BOARD)_$(BMAPI_FLAVOR)_template_accelerator.tcl >> $(WORKING_DIR)/vivado-script-accelerator.tcl
 	bash -c "cd $(WORKING_DIR) ; vivado -mode batch -source vivado-script-accelerator.tcl"
 	cp -a $(WORKING_DIR)/bondmachine.sv $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachine.sv
+ifeq ($(BMAPI_FLAVOR), axist)
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_M00_AXIS.v
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXIS.v
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v
+endif
+ifeq ($(BMAPI_FLAVOR),aximm)	
 	# Comments
+	cp -a $(ROOTDIR)/vivadoAXIcomment.sh $(WORKING_DIR)/vivadoAXIcomment.sh
 	bash -c "cd $(WORKING_DIR) ; ./vivadoAXIcomment.sh"
 	# Insert the AXI code
 	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Add user logic here/r aux/axipatch.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXI.v"
 	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXI.v"
 	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v"
 	bash -c "cd $(WORKING_DIR) ; sed -i -e '/bondmachineip_v1_0_S00_AXI_inst/r aux/designexternalinst.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v"
+endif
 	@touch $(WORKING_DIR)/vivado_accelerator
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - IP accelerator creation end]$(DEFC)"
 	@echo
 
 $(WORKING_DIR)/vivado_design_creation: $(WORKING_DIR)/$(BOARD).xdc $(WORKING_DIR)/vivado_accelerator | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - design creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	cat $(ROOTDIR)/$(BOARD)_template_design_creation.tcl >> $(WORKING_DIR)/vivado-script-design-creation.tcl
+ifeq ($(BMAPI_FLAVOR),)
+	$(error BMAPI_FLAVOR is undefined)
+endif	
+	cat $(ROOTDIR)/$(BOARD)_$(BMAPI_FLAVOR)_template_design_creation.tcl >> $(WORKING_DIR)/vivado-script-design-creation.tcl
 	bash -c "cd $(WORKING_DIR) ; vivado -mode batch -source vivado-script-design-creation.tcl"
 	@touch $(WORKING_DIR)/vivado_design_creation
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - design creation end]$(DEFC)"
