@@ -238,7 +238,7 @@ ifeq ($(BMAPI_FLAVOR),aximm)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR)
 endif
 ifeq ($(BMAPI_FLAVOR),axist)
-	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-framework $(BMAPI_FRAMEWORK) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) -bmapi-framework $(BMAPI_FRAMEWORK) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE)
 endif
 ifeq ($(BMAPI_FLAVOR),uartusb)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR)
@@ -315,7 +315,7 @@ else
 endif
 
 ifneq ($(BM_REGRESSION), )
-	BM_REGRESSION_TARGETS=$(WORKING_DIR)/bondmachine_target
+	BM_REGRESSION_TARGETS=$(WORKING_DIR)/hdl_target
 else
 	BM_REGRESSION_TARGETS=
 endif
@@ -395,7 +395,7 @@ $(WORKING_DIR)/bmapp_target: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) 
 	@echo -e "$(PJP)$(INFOC)[BondMachine App compiling begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	rm -rf $(WORKING_DIR)/app
 	mkdir -p $(WORKING_DIR)/app
-	cp $(BMAPI_GOAPP) $(WORKING_DIR)/app
+	cp $(BMAPI_APP) $(WORKING_DIR)/app
 	cd $(WORKING_DIR)/app ; go mod init $(BMAPI_GOMOD) ; go mod edit -replace git.fisica.unipg.it/bondmachine/bmapiusbuart.git=../bmapi ; go mod tidy
 	cd $(WORKING_DIR)/app ; go build
 	@touch $(WORKING_DIR)/bmapp_target
@@ -404,10 +404,51 @@ $(WORKING_DIR)/bmapp_target: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) 
 
 bmapprun: $(WORKING_DIR)/bmapp_target program | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine run App begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	cd $(WORKING_DIR)/app ; go run $(BMAPI_GOAPP)
+	cd $(WORKING_DIR)/app ; go run $(BMAPI_APP)
 	@echo -e "$(PJP)$(INFOC)[BondMachine run App end]$(DEFC)"
 	@echo
 
+.PHONY: deploy
+deploy: $(WORKING_DIR)/vivado_design_bitstream | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(DEPLOY_TYPE),ssh)
+ifndef DEPLOY_USER
+	$(error DEPLOY_USER is not set)
+endif
+ifndef DEPLOY_GROUP
+	$(error DEPLOY_GROUP is not set)
+endif
+ifndef DEPLOY_HOST
+	$(error DEPLOY_HOST is not set)
+endif
+ifndef DEPLOY_PATH
+	$(error DEPLOY_PATH is not set)
+endif
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy via ssh]$(DEFC)"
+
+ifeq ($(DEPLOY_OVERRIDE),true)
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then rm -rf $(DEPLOY_PATH); fi"
+else
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then ; exit 1; fi"
+endif
+
+ifneq ($(DEPLOY_CLONE),)
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_CLONE) ]; then cp -a $(DEPLOY_CLONE) $(DEPLOY_PATH); fi"
+else
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ ! -d $(DEPLOY_PATH) ]; then mkdir -p $(DEPLOY_PATH); fi"
+endif
+
+	scp $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper.bit $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.bit
+	scp $$(find | grep hwh) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.hwh
+
+ifneq ($(DEPLOY_APP),)
+	scp $(DEPLOY_APP) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/
+endif
+
+
+endif	
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy end]$(DEFC)"
+	@echo
 
 show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
