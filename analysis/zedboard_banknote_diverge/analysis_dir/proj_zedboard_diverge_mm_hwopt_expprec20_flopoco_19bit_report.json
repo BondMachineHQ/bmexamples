@@ -1,0 +1,13 @@
+{
+	"cps": 24,
+	"bonds": 33,
+	"luts": 7214,
+	"regs": 5717,
+	"power": 0.201,
+	"clock_freq": 100,
+	"addop": "addflpe5f11",
+	"divop": "divflpe5f11",
+	"expprec": "20",
+	"multop": "multflpe5f11",
+	"typeprefix": "0flp<5.11>"
+}
