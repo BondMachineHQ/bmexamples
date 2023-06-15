@@ -1,0 +1,136 @@
+menu "BondMachine configuration"
+
+choice SELECT_PROJECT_TYPE
+    prompt "Project type"
+    default PROJECT_TYPE_BONDGO
+
+config PROJECT_TYPE_BONDGO
+    bool "Bondgo source file"
+config PROJECT_TYPE_NEURALBOND
+    bool "Neuralbond nn file"
+config PROJECT_TYPE_MELBOND
+    bool "Melbond program file"
+config PROJECT_TYPE_BASM
+    bool "Basm file"
+endchoice
+
+config SOURCE_BONDGO
+    string "source file"
+    depends on PROJECT_TYPE_BONDGO
+    default "test.go"
+    help
+      Write the source file name
+
+config SOURCE_NEURALBOND
+    string "nn file"
+    depends on PROJECT_TYPE_NEURALBOND
+    default "test.json"
+    help
+      Write the neural network file name
+
+config SOURCE_MELBOND
+    string "melbond file"
+    depends on PROJECT_TYPE_MELBOND
+    default "test.mel"
+    help
+      Write the melbond file name
+
+config SOURCE_BASM
+    string "Select the basm file"
+    depends on PROJECT_TYPE_BASM
+    default "test.basm"
+    help
+      Write the basm file name
+
+config BASM_DEBUG
+    bool "Show basm debug informations"
+    depends on PROJECT_TYPE_BASM
+    default n
+    help
+      Activate basm debug
+
+endmenu
+
+menu "Board and toolchain"
+	choice SELECT_TOOLCHAIN
+	    prompt "Toolchain"
+	    default TOOLCHAIN_XILINX
+	config TOOLCHAIN_XILINX
+	    bool "AMD/Xilinx with Vivado"
+	config TOOLCHAIN_ALTERA
+	    bool "Intel/Altera with Quartus"
+	config TOOLCHAIN_LATTICE
+	    bool "Lattice with icestorm"
+	config TOOLCHAIN_NONE
+	    bool "No board project"
+	endchoice
+endmenu
+
+menu "External modules"
+
+config UART_SUPPORT
+    bool "Activate UART support"
+    default n
+    help
+      Activate UART support
+
+config UART_MAPFILE
+    string "UART PIN mapping file"
+    depends on UART_SUPPORT
+    default ""
+    help
+      UART PIM mapping file
+
+endmenu
+
+menu "Testing and debugging"
+
+config REGRESSION_TEST
+    bool "Regression tests"
+    default n
+    help
+      Activate regression test
+
+config REGRESSION_TEST_HDL
+    bool "Regression test on HDL"
+    depends on REGRESSION_TEST
+    default n
+    help
+      Activate regression test HDL
+
+config HDL_REGRESSION
+    string "HDL regression file"
+    depends on REGRESSION_TEST_HDL
+    default "bondmachine.sv"
+    help
+      Write the HDL regression file name
+
+config REGRESSION_TEST_BM
+    bool "Regression test on BM"
+    depends on REGRESSION_TEST
+    default n
+    help
+      Activate regression test BM
+
+config BM_REGRESSION
+    string "BM regression file"
+    depends on REGRESSION_TEST_BM
+    default "bondmachine.json"
+    help
+      Write the BM regression file name
+
+config REGRESSION_TEST_SIM
+    bool "Regression test on simulation"
+    depends on REGRESSION_TEST
+    default n
+    help
+      Activate regression test SIM
+
+config SIM_REGRESSION
+    string "SIM regression file"
+    depends on REGRESSION_TEST_SIM
+    default "bondmachine.sim"
+    help
+      Write the SIM regression file name    
+
+endmenu

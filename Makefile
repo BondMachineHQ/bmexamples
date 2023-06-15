@@ -5,14 +5,43 @@ ERRC=\033[31m
 PJPC=\033[31m
 DEFC=\033[0m
 SEND=\033[400C\033[11D
-include local.mk
+-include local.mk
+-include .config
+
+##### Kconfig processing (.config has always precedence)
+PREFIX := CONFIG_
+
+define unquote
+	$(subst ",,$(1))
+endef
+
+$(foreach VAR,$(filter ${PREFIX}%,$(.VARIABLES)), $(eval $(patsubst ${PREFIX}%,%,$(VAR)) := $(call unquote,$($(VAR))))) 
+
+
+##### Kconfig specific vars
+
+ifneq ($(BASM_DEBUG), )
+	BASM_ARGS+= -d
+endif
+
+ifneq ($(UART_SUPPORT), )
+	BM_ARGS+= -uart
+endif
+
+ifneq ($(UART_MAPFILE), )
+        BM_ARGS+= -uart-mapfile $(UART_MAPFILE)
+endif  
 
 ##### Cluster or single target selection
 
 ifneq ($(CLUSTER), )
 	MAINTARGET=cluster
 else
+ifneq ($(SOURCE_PROJECTS), )
+	MAINTARGET=projects
+else
 	MAINTARGET=bondmachine
+endif
 endif
 
 ##### Project name
@@ -21,6 +50,10 @@ PROJECT_NAME=$(shell basename `pwd`)
 PJP=$(PJPC)"[Project: $(PROJECT_NAME)]"$(DEFC)" - "
 
 ##### Toolchain selection
+
+ifndef BOARD
+	BOARD=none
+endif
 
 ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == "zc702"  || $(BOARD) == "kc705" || $(BOARD) == "ebaz4205" ]] && echo true ),true)
 	BOARDOK=yes
@@ -153,6 +186,13 @@ endif
 	SOURCE=$(SOURCE_NEURALBOND)
 endif
 
+ifneq ($(SOURCE_MELBOND), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=melbond -neuron-lib-path $(MELBOND_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(MELBOND_ARGS) $(BMINFO_ARGS) $(SOURCE_MELBOND); basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(MELBOND_LIBRARY)/*.basm
+	SOURCE=$(SOURCE_MELBOND)
+endif
 
 
 ##### Arguments processing
@@ -233,15 +273,39 @@ else
 	UDPBOND_ARGS=
 endif
 
+## BMAPI SUB ARGS PROCESSING
+
+ifneq ($(BMAPI_DATATYPE), )
+	BMAPI_DATATYPE_ARGS=-bmapi-data-type "$(BMAPI_DATATYPE)"
+else
+ifneq ($(DATATYPE), )
+	BMAPI_DATATYPE_ARGS=-bmapi-data-type "$(DATATYPE)"
+else
+	BMAPI_DATATYPE_ARGS=
+endif
+endif
+
+ifneq ($(BMAPI_LANGUAGE), )
+	BMAPI_LANGUAGE_ARGS=-bmapi-language $(BMAPI_LANGUAGE)
+else
+	BMAPI_LANGUAGE_ARGS=
+endif
+
+ifneq ($(BMAPI_FRAMEWORK), )
+	BMAPI_FRAMEWORK_ARGS=-bmapi-framework $(BMAPI_FRAMEWORK)
+else
+	BMAPI_FRAMEWORK_ARGS=
+endif
+
 ifneq ($(USE_BMAPI), )
 ifeq ($(BMAPI_FLAVOR),aximm)
-	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
 endif
 ifeq ($(BMAPI_FLAVOR),axist)
-	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) -bmapi-framework $(BMAPI_FRAMEWORK) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
 endif
 ifeq ($(BMAPI_FLAVOR),uartusb)
-	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) -bmapi-language $(BMAPI_LANGUAGE) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) $(BMAPI_DATATYPE_ARGS)
 endif
 else
 	BMAPI_ARGS=
@@ -325,12 +389,31 @@ ifneq ($(SIM_REGRESSION), )
 else
 	SIM_REGRESSION_TARGETS=
 endif
+ifneq ($(DATATYPE), )
+	SIMBATCH_DATATYPE=--data-type "$(DATATYPE)"
+else
+	SIMBATCH_DATATYPE=
+endif
 
 ifneq ($(BMINFO), )
         BMINFO_ARGS=-bminfo-file $(BMINFO)
 else
         BMINFO_ARGS=
 endif
+
+ifneq ($(BMREQS), )
+        BMREQS_ARGS=-bmrequirements-file $(BMREQS)
+else
+        BMREQS_ARGS=
+endif
+
+ifneq ($(HWOPTIMIZATIONS), )
+        BMOPT_ARGS=-hw-optimizations $(HWOPTIMIZATIONS)
+else
+        BMOPT_ARGS=
+endif
+
+
 
 
 
@@ -358,6 +441,18 @@ bmapp: $(WORKING_DIR)/bmapp_target | $(WORKING_DIR) checkenv
 .PHONY: program
 program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
 
+##### Kconfig based confifuration
+.PHONY: menuconfig
+menuconfig:
+ifneq (, $(shell which menuconfig))
+	@menuconfig
+else
+ifneq (, $(shell which kconfig-mconf))
+	@kconfig-mconf Kconfig
+else
+	$(error "No Kconfig tool in $(PATH)")
+endif
+endif
 
 ##### Toolchain independent targets
 
@@ -380,7 +475,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2KBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2KBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
@@ -427,28 +522,58 @@ endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine deploy via ssh]$(DEFC)"
 
 ifeq ($(DEPLOY_OVERRIDE),true)
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then rm -rf $(DEPLOY_PATH); fi"
+	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then rm -rf $(DEPLOY_PATH); fi"
 else
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then ; exit 1; fi"
+	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_PATH) ]; then ; exit 1; fi"
 endif
 
 ifneq ($(DEPLOY_CLONE),)
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_CLONE) ]; then cp -a $(DEPLOY_CLONE) $(DEPLOY_PATH); fi"
+	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ -d $(DEPLOY_CLONE) ]; then cp -a $(DEPLOY_CLONE) $(DEPLOY_PATH); fi"
 else
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ ! -d $(DEPLOY_PATH) ]; then mkdir -p $(DEPLOY_PATH); fi"
+	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "if [ ! -d $(DEPLOY_PATH) ]; then mkdir -p $(DEPLOY_PATH); fi"
 endif
-
-	scp $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper.bit $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.bit
-	scp $$(find | grep hwh) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.hwh
+	scp $(SSH_ARGS) $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper.bit $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.bit
+	scp $(SSH_ARGS) $$(find | grep hwh) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/firmware.hwh
 
 ifneq ($(DEPLOY_APP),)
-	scp $(DEPLOY_APP) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/
+	scp $(SSH_ARGS) $(DEPLOY_APP) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/
+endif
+endif	
+
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy end]$(DEFC)"
+	@echo
+
+.PHONY: deployrun
+deployrun: deploy | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine deployrun begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(DEPLOY_TYPE),ssh)
+ifneq ($(DEPLOY_APP),)
+ifneq ($(DEPLOY_RUN_COMMAND),)
+	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "cd $(DEPLOY_PATH) ; $(DEPLOY_RUN_COMMAND)"
+endif
+endif
+endif
+	@echo -e "$(PJP)$(INFOC)[BondMachine deployrun end]$(DEFC)"
+	@echo
+
+.PHONY: deploycollect
+deploycollect: deployrun | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploycollect begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(DEPLOY_TYPE),ssh)
+ifneq ($(DEPLOY_COLLECT),)
+	@bash -c 'for i in $(DEPLOY_COLLECT) ; do scp $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/$$i $(WORKING_DIR)/$$i ; done'
+endif
+endif
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploycollect end]$(DEFC)"
+	@echo
+
+.PHONY: dumpcollect
+dumpcollect: 
+ifneq ($(DEPLOY_COLLECT),)
+	@bash -c 'for i in $(DEPLOY_COLLECT) ; do echo $$i ; done'
 endif
 
 
-endif	
-	@echo -e "$(PJP)$(INFOC)[BondMachine deploy end]$(DEFC)"
-	@echo
 
 show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
@@ -456,19 +581,28 @@ show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show end]$(DEFC)"
 	@echo
 
+specs: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine specs begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -specs
+	@echo -e "$(PJP)$(INFOC)[BondMachine specs end]$(DEFC)"
+	@echo
+
 report: $(WORKING_DIR)/vivado_design_implementation  | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine report begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	@echo -e "{" > $(WORKING_DIR)/report.json
-	@echo -e '\t"cps": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -enum-processors`',' >> $(WORKING_DIR)/report.json
-	@echo -e '\t"bonds": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -enum-bonds`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"cps": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json $(BMRANGES) -enum-processors`',' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"bonds": '`bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json $(BMRANGES) -enum-bonds`',' >> $(WORKING_DIR)/report.json
 	@echo -e '\t"luts": '`grep -F -e LUTs $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_utilization_placed.rpt | cut -d '|' -f 3 | sed 's/ //g'`',' >> $(WORKING_DIR)/report.json
 	@echo -e '\t"regs": '`grep -F -e 'Slice Registers' $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_utilization_placed.rpt | cut -d '|' -f 3 | sed 's/ //g' | head -n 1`',' >> $(WORKING_DIR)/report.json
 	@echo -e '\t"power": '`grep -F -e 'bondmachineip_0' $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper_power_routed.rpt | cut -d "|" -f 3 | sed 's/ //g'| head -n 1`',' >> $(WORKING_DIR)/report.json
 ifeq ($(BOARD),zedboard)
-	@echo -e '\t"clock_freq": 100' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"clock_freq": 100,' >> $(WORKING_DIR)/report.json
 endif
 ifeq ($(BOARD),ebaz4205)
-	@echo -e '\t"clock_freq": 50' >> $(WORKING_DIR)/report.json
+	@echo -e '\t"clock_freq": 50,' >> $(WORKING_DIR)/report.json
+endif
+ifneq ($(SOURCE_NEURALBOND),)
+	@cat neuralbondconfig.json | jq --tab .Params | head -n -1 | tail -n +2 >> $(WORKING_DIR)/report.json
 endif
 	@echo -e "}" >> $(WORKING_DIR)/report.json
 	@echo -e "$(PJP)$(INFOC)[BondMachine report end]$(DEFC)"
@@ -483,7 +617,11 @@ ifndef SIM_INTERACTIONS
 endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simulation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	cp $(SIMBOX_FILE) $(WORKING_DIR)
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -sim -simbox-file $(WORKING_DIR)/$(SIMBOX_FILE) -sim-interactions $(SIM_INTERACTIONS) $(SIM_OPTIONS) | tee $(WORKING_DIR)/simulate.out
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -sim -simbox-file $(WORKING_DIR)/$(SIMBOX_FILE) -sim-interactions $(SIM_INTERACTIONS) $(SIM_OPTIONS) $(BMRANGES) | tee $(WORKING_DIR)/simulate.out
+ifdef SIMREPORT_CLEANUP
+	bmnumbers -omit-prefix $(BMRANGES) -use-files $(SIM_REPORT)
+	mv $(SIM_REPORT).out $(SIM_REPORT)
+endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simulation end]$(DEFC)"
 	@echo
 
@@ -499,7 +637,7 @@ ifndef SIMBATCH_ITERACTIONS
 	$(error SIMBATCH_ITERACTIONS is undefined)
 endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	./simbatch.py -w $(WORKING_DIR) -i $(SIMBATCH_INPUT_DATASET) -o $(SIMBATCH_OUTPUT_DATASET) -s $(SIMBATCH_ITERACTIONS) $(SIMBATCH_ARGS)
+	./simbatch.py -w $(WORKING_DIR) -i $(SIMBATCH_INPUT_DATASET) -o $(SIMBATCH_OUTPUT_DATASET) -s $(SIMBATCH_ITERACTIONS) $(SIMBATCH_ARGS) $(BMRANGES) $(SIMBATCH_DATATYPE)
 	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch end]$(DEFC)"
 	@echo
 
@@ -608,9 +746,63 @@ ifneq ($(SIM_REGRESSION_TARGETS), )
 endif
 
 
-
 .PHONY: regressionreset
 regressionreset: regressionbmreset regressionhdlreset regressionsimreset
+
+
+##### Projects analysis
+
+.PHONY: projects
+projects:
+ifndef SOURCE_PROJECTS
+	$(error "undefined SOURCE_PROJECTS")
+endif
+ifndef PROJECTS_TARGET
+	$(error "undefined PROJECTS_TARGET")
+endif
+	@echo -e "$(PJP)$(INFOC)[Projects begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i $(PROJECTS_TARGET) || exit 1  ; done'
+	@echo -e "$(PJP)$(INFOC)[Projects end]$(DEFC)"
+	
+.PHONY: projectscollect
+projectscollect: projects | $(WORKING_DIR)
+ifndef PROJECTS_TYPE
+	$(error "undefined PROJECTS_TYPE")
+endif
+	@echo -e "$(PJP)$(INFOC)[Projects collect begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"	
+ifeq ($(PROJECTS_TYPE),ml)
+	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i SHOWRENDERER="dot -Tpng > working_dir/image.png"  show ; cp -a $$i/working_dir/image.png  working_dir/`basename $$i`_image.png ;  done'
+	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i report ; cp -a $$i/working_dir/report.json  working_dir/`basename $$i`_report.json ;  done'
+	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
+	@bash -c 'LIST="" ; for i in `cat $(SOURCE_PROJECTS)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type ml -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
+endif
+ifeq ($(PROJECTS_TYPE),mlsim)
+	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
+	@bash -c 'LIST="" ; for i in `cat $(SOURCE_PROJECTS)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type mlsim -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
+endif
+	@echo -e "$(PJP)$(INFOC)[Projects collect end]$(DEFC)"
+
+.PHONY: projectsdeploy
+projectsdeploy: projectscollect | $(WORKING_DIR)
+	@echo -e "$(PJP)$(INFOC)[Projects deploy begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(DEPLOY_TYPE),local)
+ifndef DEPLOY_PATH
+	$(error "undefined DEPLOY_PATH")
+endif
+
+ifeq ($(DEPLOY_OVERRIDE),true)
+	@rm -rf $(DEPLOY_PATH)
+else
+	@bash -c 'if [ -d $(DEPLOY_PATH) ]; then ; exit 1; fi'
+endif
+endif
+
+	@mkdir -p $(DEPLOY_PATH)
+	@bash -c 'for i in `ls $(WORKING_DIR)` ; do cp -a $(WORKING_DIR)/$$i $(DEPLOY_PATH) ; done'
+	@echo -e "$(PJP)$(INFOC)[Projects deploy end]$(DEFC)"
+	@echo
+
+
 
 
 ##### Iverilog gtkwave toolchain
@@ -800,6 +992,7 @@ endif
 	cat $(ROOTDIR)/$(BOARD)_$(BMAPI_FLAVOR)_template_accelerator.tcl >> $(WORKING_DIR)/vivado-script-accelerator.tcl
 	bash -c "cd $(WORKING_DIR) ; vivado -mode batch -source vivado-script-accelerator.tcl"
 	cp -a $(WORKING_DIR)/bondmachine.sv $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachine.sv
+	cp -a $(WORKING_DIR)/bondmachine.vhd $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachine.vhd
 ifeq ($(BMAPI_FLAVOR), axist)
 	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_M00_AXIS.v
 	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXIS.v
@@ -958,6 +1151,7 @@ clean:
 	rm -f graphviz*
 	rm -rf ebcluster*
 	rm -f a.out*
+	rm -f .config.old
 	@echo -e "$(PJP)$(INFOC)[Cleanup end]$(DEFC)"
 	@echo
  
