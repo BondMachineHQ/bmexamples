@@ -130,16 +130,6 @@ Create the custom buildroot linux sdcard-image.
 
 Wether you are reading variables from the **Kconfig** file or from the **.mk** files, the syntax is the same. The following is the list of the most commonly used variables:
 
-Inside a project there is a local.mk file which contains all the variables necessary to create a project. It is searched directly from the Makefile file. Eventually variables can be set in other **.mk** files and included in the local.mk file for convenience.
-
-The following is the list of commonly used **.mk** files inside a project (but you can also create your own):
-
-```
-deploy.mk
-
-In this file are defined all the variables necessary to deploy the firmware generated on the board you have previously selected
-```
-
 | Variable              | type          | description               |
 | --------              | --------      | --------                  |
 | `DEPLOY_DIR`            | mandatory     | target directory          |
@@ -147,10 +137,7 @@ In this file are defined all the variables necessary to deploy the firmware gene
 | `DEPLOY_DIR`            | mandatory     | target user on the board  |
 | `DEPLOY_GROUP`          | mandatory     | target group on the board |
 
-```
-local.mk
-In this file are defined all the variables necessary to create a project
-```
+
 
 | Variable              | type          | description       |
 | --------              | --------      | --------          |
@@ -165,5 +152,3 @@ In this file are defined all the variables necessary to create a project
 | `SHOWARGS`              | optional      | variables to display in different ways the bondmachine graph  |
 | `SHOWRENDERER`          | mandatory     | ... |
 | `VERILOG_OPTIONS`       | mandatory     | ... |
-
-```
