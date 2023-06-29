@@ -130,25 +130,40 @@ Create the custom buildroot linux sdcard-image.
 
 Wether you are reading variables from the **Kconfig** file or from the **.mk** files, the syntax is the same. The following is the list of the most commonly used variables:
 
-| Variable              | type          | description               |
-| --------              | --------      | --------                  |
-| `DEPLOY_DIR`            | mandatory     | target directory          |
-| `DEPLOY_TARGET`         | mandatory     | target board              |
-| `DEPLOY_DIR`            | mandatory     | target user on the board  |
-| `DEPLOY_GROUP`          | mandatory     | target group on the board |
-
-
 
 | Variable              | type          | description       |
-| --------              | --------      | --------          |
-| `WORKING_DIR`           | mandatory     | directory name where the project is build (default) working_dir   |
-| `CURRENT_DIR`           | mandatory     | current directory where you exec the makefile commands (default) $(shell pwd)   |
-| `SOURCE_NEURALBOND`     | optional      | json file that describes the neural network you want to deploy on FPGA   |
-| `NEURALBOND_LIBRARY`    | optional      | library of assembly neurons necessary to build the neural network on FPGA   |
-| `NEURALBOND_ARGS`       | optional      | set of arguments to customize the neural network   |
-| `BMINFO`                | mandatory     | json file   |
-| `BOARD`                 | mandatory     | the target board for which you want to synthesize the firmware   |
-| `MAPFILE`               | mandatory     | json file   |
-| `SHOWARGS`              | optional      | variables to display in different ways the bondmachine graph  |
-| `SHOWRENDERER`          | mandatory     | ... |
-| `VERILOG_OPTIONS`       | mandatory     | ... |
+| --------             | --------      | --------          |
+| `BASM_DEBUG`                | boolean     | enable or not debug of basm   |
+| `BM_REGRESSION`              | KConfig Only      | missing  |
+| `BOARDLESS_PROJECT`                | KConfig only     | enable or not debug of basm   |
+| `GENERAL_TYPE`             | KConfig only        | general project type                  |
+| `GENERAL_TYPE_BOARDLESS`    |  KConfig only       | project without board                 |
+| `GENERAL_TYPE_BOARD`        |  KConfig only       | project with board                    |
+| `HDL_REGRESSION`              | filename      | missing  |
+| `PROJECT_TYPE_BONDGO`       |  KConfig Only       | BondGo project                        |
+| `PROJECT_TYPE_NEURALBOND`   |  KConfig Only       | Neural Network project                |
+| `PROJECT_TYPE_MELBOND`      |  KConfig Only       | Melbond project                       |
+| `PROJECT_TYPE_BASM`         |  KConfig Only       | sBASM project                         |
+| `PROJECT_TYPE_MULTI`       |  KConfig Only     | Root project aggregator for multiple project                      |
+| `MULTI_TARGET`       |  string     | Target to exec in case of multiple projects                       |
+| `MULTI_TYPE`       |  string       | Type of aggregation                       |
+| `MULTI_TEMPLATE_DIR`       |  directory       | directory of template to clone                       |
+| `MULTI_TEMPLATE_DESC`       |  filename       | multifilename description json file                      |
+| `SELECT_PROJECT_TYPE`       |  KConfig Only       | select project type                   |
+| `SELECT_TOOLCHAIN`       |  KConfig Only       | select toolchain                   |
+| `REGRESSION_TEST`              | KConfig Only      | missing description  |
+| `REGRESSION_TEST_BM`              | KConfig Only      | missing  |
+| `REGRESSION_TEST_HDL`              | KConfig Only      | missing  |
+| `REGRESSION_TEST_SIM`              | KConfig Only      | missing  |
+| `SIM_REGRESSION`              | KConfig Only      | missing  |
+| `SOURCE_BONDGO`       | filename     | bondGO source         |
+| `SOURCE_NEURALBOND`            | filename     | neuralbond source file          |
+| `SOURCE_MELBOND`            | filename     | melnond source file          |
+| `SOURCE_BASM`            | filenames     | basm source file          |
+| `TOOLCHAIN_ALTERA`            | boolean     | select altera toolchain          |
+| `TOOLCHAIN_LATTICE`            | boolean     | select lattice toolchain          |
+| `TOOLCHAIN_XILINX`            | boolean     | select xilinx toolchain          |
+| `UART_MAPFILE`            | filename     | support for UART          |
+| `UART_SUPPORT`            | boolean     | support for UART          |
+
+
