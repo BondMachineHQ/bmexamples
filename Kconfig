@@ -1,57 +1,102 @@
+menu "General"
+	choice GENERAL_TYPE
+		prompt "General project type"
+		default GENERAL_TYPE_BOARD
+	config GENERAL_TYPE_BOARD
+		bool "Project with board"
+	config GENERAL_TYPE_BOARDLESS
+		bool "Project without a borad"
+	endchoice
+endmenu
+
 menu "BondMachine configuration"
+	depends on GENERAL_TYPE_BOARD
 
-choice SELECT_PROJECT_TYPE
-    prompt "Project type"
-    default PROJECT_TYPE_BONDGO
+	choice SELECT_PROJECT_TYPE
+		prompt "Project type"
+		default PROJECT_TYPE_BONDGO
 
-config PROJECT_TYPE_BONDGO
-    bool "Bondgo source file"
-config PROJECT_TYPE_NEURALBOND
-    bool "Neuralbond nn file"
-config PROJECT_TYPE_MELBOND
-    bool "Melbond program file"
-config PROJECT_TYPE_BASM
-    bool "Basm file"
-endchoice
+		config PROJECT_TYPE_BONDGO
+			bool "Bondgo source file"
+		config PROJECT_TYPE_NEURALBOND
+			bool "Neuralbond nn file"
+		config PROJECT_TYPE_MELBOND
+			bool "Melbond program file"
+		config PROJECT_TYPE_BASM
+			bool "Basm file"
+	endchoice
 
-config SOURCE_BONDGO
-    string "source file"
-    depends on PROJECT_TYPE_BONDGO
-    default "test.go"
-    help
-      Write the source file name
+	config SOURCE_BONDGO
+		string "source file"
+		depends on PROJECT_TYPE_BONDGO
+		default "test.go"
+		help
+			Write the source file name
 
-config SOURCE_NEURALBOND
-    string "nn file"
-    depends on PROJECT_TYPE_NEURALBOND
-    default "test.json"
-    help
-      Write the neural network file name
+	config SOURCE_NEURALBOND
+		string "nn file"
+		depends on PROJECT_TYPE_NEURALBOND
+		default "test.json"
+		help
+			Write the neural network file name
 
-config SOURCE_MELBOND
-    string "melbond file"
-    depends on PROJECT_TYPE_MELBOND
-    default "test.mel"
-    help
-      Write the melbond file name
+	config SOURCE_MELBOND
+		string "melbond file"
+		depends on PROJECT_TYPE_MELBOND
+		default "test.mel"
+		help
+			Write the melbond file name
 
-config SOURCE_BASM
-    string "Select the basm file"
-    depends on PROJECT_TYPE_BASM
-    default "test.basm"
-    help
-      Write the basm file name
+	config SOURCE_BASM
+		string "Select the basm file"
+		depends on PROJECT_TYPE_BASM
+		default "test.basm"
+		help
+			Write the basm file name
 
-config BASM_DEBUG
-    bool "Show basm debug informations"
-    depends on PROJECT_TYPE_BASM
-    default n
-    help
-      Activate basm debug
+	config BASM_DEBUG
+		bool "Show basm debug informations"
+		depends on PROJECT_TYPE_BASM
+		default n
+		help
+			Activate basm debug
+
+endmenu
+
+menu "Project configuration"
+	depends on GENERAL_TYPE_BOARDLESS
+
+	choice BOARDLESS_PROJECT
+		prompt "Project type"
+		default PROJECT_TYPE_MULTI
+
+		config PROJECT_TYPE_MULTI
+			bool "Multiple projects handler"
+	endchoice
+
+	config MULTI_TARGET
+		depends on PROJECT_TYPE_MULTI
+		string "Projects target"
+
+	config MULTI_TYPE
+		depends on PROJECT_TYPE_MULTI
+		string "Projects type"
+		default "templsim"
+
+	config MULTI_TEMPLATEDIR
+		depends on PROJECT_TYPE_MULTI
+		string "Projects template dir"
+		default "template"
+
+	config MULTI_TEMPLATEDESC
+		depends on PROJECT_TYPE_MULTI
+		string "Projects template description JSON file"
+		default "template.json"
 
 endmenu
 
 menu "Board and toolchain"
+	depends on GENERAL_TYPE_BOARD
 	choice SELECT_TOOLCHAIN
 	    prompt "Toolchain"
 	    default TOOLCHAIN_XILINX
@@ -61,12 +106,11 @@ menu "Board and toolchain"
 	    bool "Intel/Altera with Quartus"
 	config TOOLCHAIN_LATTICE
 	    bool "Lattice with icestorm"
-	config TOOLCHAIN_NONE
-	    bool "No board project"
 	endchoice
 endmenu
 
 menu "External modules"
+depends on GENERAL_TYPE_BOARD
 
 config UART_SUPPORT
     bool "Activate UART support"
@@ -84,6 +128,7 @@ config UART_MAPFILE
 endmenu
 
 menu "Testing and debugging"
+depends on GENERAL_TYPE_BOARD
 
 config REGRESSION_TEST
     bool "Regression tests"

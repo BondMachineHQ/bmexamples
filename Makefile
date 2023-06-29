@@ -7,6 +7,7 @@ DEFC=\033[0m
 SEND=\033[400C\033[11D
 -include local.mk
 -include .config
+-include generated.mk
 
 ##### Kconfig processing (.config has always precedence)
 PREFIX := CONFIG_
@@ -37,7 +38,7 @@ endif
 ifneq ($(CLUSTER), )
 	MAINTARGET=cluster
 else
-ifneq ($(SOURCE_PROJECTS), )
+ifneq ($(SOURCE_MULTI), )
 	MAINTARGET=projects
 else
 	MAINTARGET=bondmachine
@@ -444,10 +445,10 @@ program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
 ##### Kconfig based confifuration
 .PHONY: menuconfig
 menuconfig:
-ifneq (, $(shell which menuconfig))
+ifneq (, $(shell which menuconfig 2> /dev/null))
 	@menuconfig
 else
-ifneq (, $(shell which kconfig-mconf))
+ifneq (, $(shell which kconfig-mconf 2> /dev/null))
 	@kconfig-mconf Kconfig
 else
 	$(error "No Kconfig tool in $(PATH)")
@@ -455,6 +456,14 @@ endif
 endif
 
 ##### Toolchain independent targets
+
+.PHONY: apply
+apply:
+	@bmhelper apply
+
+.PHONY: validate
+validate:
+	@bmhelper validate
 
 name:
 	@echo $(PROJECT_NAME)
@@ -754,31 +763,31 @@ regressionreset: regressionbmreset regressionhdlreset regressionsimreset
 
 .PHONY: projects
 projects:
-ifndef SOURCE_PROJECTS
-	$(error "undefined SOURCE_PROJECTS")
+ifndef SOURCE_MULTI
+	$(error "undefined SOURCE_MULTI")
 endif
-ifndef PROJECTS_TARGET
-	$(error "undefined PROJECTS_TARGET")
+ifndef MULTI_TARGET
+	$(error "undefined MULTI_TARGET")
 endif
 	@echo -e "$(PJP)$(INFOC)[Projects begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i $(PROJECTS_TARGET) || exit 1  ; done'
+	@bash -c 'for i in `cat $(SOURCE_MULTI)` ; do make --no-print-directory  -C $$i $(MULTI_TARGET) || exit 1  ; done'
 	@echo -e "$(PJP)$(INFOC)[Projects end]$(DEFC)"
 	
 .PHONY: projectscollect
 projectscollect: projects | $(WORKING_DIR)
-ifndef PROJECTS_TYPE
-	$(error "undefined PROJECTS_TYPE")
+ifndef MULTI_TYPE
+	$(error "undefined MULTI_TYPE")
 endif
 	@echo -e "$(PJP)$(INFOC)[Projects collect begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"	
-ifeq ($(PROJECTS_TYPE),ml)
-	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i SHOWRENDERER="dot -Tpng > working_dir/image.png"  show ; cp -a $$i/working_dir/image.png  working_dir/`basename $$i`_image.png ;  done'
-	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do make --no-print-directory  -C $$i report ; cp -a $$i/working_dir/report.json  working_dir/`basename $$i`_report.json ;  done'
-	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
-	@bash -c 'LIST="" ; for i in `cat $(SOURCE_PROJECTS)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type ml -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
+ifeq ($(MULTI_TYPE),ml)
+	@bash -c 'for i in `cat $(SOURCE_MULTI)` ; do make --no-print-directory  -C $$i SHOWRENDERER="dot -Tpng > working_dir/image.png"  show ; cp -a $$i/working_dir/image.png  working_dir/`basename $$i`_image.png ;  done'
+	@bash -c 'for i in `cat $(SOURCE_MULTI)` ; do make --no-print-directory  -C $$i report ; cp -a $$i/working_dir/report.json  working_dir/`basename $$i`_report.json ;  done'
+	@bash -c 'for i in `cat $(SOURCE_MULTI)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
+	@bash -c 'LIST="" ; for i in `cat $(SOURCE_MULTI)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type ml -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
 endif
-ifeq ($(PROJECTS_TYPE),mlsim)
-	@bash -c 'for i in `cat $(SOURCE_PROJECTS)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
-	@bash -c 'LIST="" ; for i in `cat $(SOURCE_PROJECTS)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type mlsim -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
+ifeq ($(MULTI_TYPE),templsim)
+	@bash -c 'for i in `cat $(SOURCE_MULTI)` ; do for j in `make --no-print-directory  -C $$i dumpcollect` ; do cp -a $$i/working_dir/$$j working_dir/`basename $$i`_$$j ; done ; done'
+	@bash -c 'LIST="" ; for i in `cat $(SOURCE_MULTI)` ; do LIST=`basename $$i`,$$LIST ; bmanalysis -analysis-type mlsim -projects-list $$LIST -ipynb-file working_dir/analysis.ipynb ; done'
 endif
 	@echo -e "$(PJP)$(INFOC)[Projects collect end]$(DEFC)"
 
@@ -1152,6 +1161,7 @@ clean:
 	rm -rf ebcluster*
 	rm -f a.out*
 	rm -f .config.old
+	rm -f generated.mk
 	@echo -e "$(PJP)$(INFOC)[Cleanup end]$(DEFC)"
 	@echo
  
@@ -1184,7 +1194,8 @@ endif
 endif
 # TODO others toolchains
 
-
+%.ll: %.c
+	clang-14 -S -emit-llvm $<
 
 #ifeq (, $(shell which git 2> /dev/null ))
 # 	$(error "No git in PATH")
