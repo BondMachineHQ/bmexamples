@@ -130,8 +130,7 @@ Create the custom buildroot linux sdcard-image.
 
 Wether you are reading variables from the **Kconfig** file or from the **.mk** files, the syntax is the same. The following is the list of the most commonly used variables:
 
-
-| Variable | type | description |
+| **Variable** | **type** | **description** |
 |--------|:--------:|--------:|
 | `ALTERA_BOARD_MAX1000` | KConfig Only | Board selection max1000 |
 | `ALTERA_BOARD_DE0NANO` | KConfig Only | Board selection de0nano |
@@ -180,5 +179,3 @@ Wether you are reading variables from the **Kconfig** file or from the **.mk** f
 | `XILINX_BOARD_ZC702` | KConfig Only | Board selection zc702 |
 | `XILINX_BOARD_KC705` | KConfig Only | Board selection kc705 |
 | `XILINX_BOARD_EBAZ4205` | KConfig Only | Board selection ebaz4205 |
-
-
