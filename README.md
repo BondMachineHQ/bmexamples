@@ -132,7 +132,7 @@ Wether you are reading variables from the **Kconfig** file or from the **.mk** f
 
 
 | Variable | type | description |
-| -------- | -------- | -------- |
+|--------|:--------:|--------:|
 | `ALTERA_BOARD_MAX1000` | KConfig Only | Board selection max1000 |
 | `ALTERA_BOARD_DE0NANO` | KConfig Only | Board selection de0nano |
 | `BASM_DEBUG` | boolean | enable or not debug of basm |
