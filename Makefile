@@ -1,4 +1,5 @@
 SHELL=/bin/bash
+CURRENT_DIR=$(shell pwd)
 INFOC=\033[32m
 WARNC=\033[33m
 ERRC=\033[31m
@@ -32,6 +33,51 @@ endif
 ifneq ($(UART_MAPFILE), )
         BM_ARGS+= -uart-mapfile $(UART_MAPFILE)
 endif  
+
+# Boards
+ifeq ($(XILINX_BOARD_BASYS3),y)
+	BOARD=basys3
+endif
+
+ifeq ($(XILINX_BOARD_ZEDBOARD),y)
+	BOARD=zedboard
+endif
+
+ifeq ($(XILINX_BOARD_ZC702),y)
+	BOARD=zc702
+endif
+
+ifeq ($(XILINX_BOARD_KC705),y)
+	BOARD=kc705
+endif
+
+ifeq ($(XILINX_BOARD_EBAZ4205),y)
+	BOARD=ebaz4205
+endif
+
+ifeq ($(LATTICE_BOARD_ICEFUN),y)
+	BOARD=icefun
+endif
+
+ifeq ($(LATTICE_BOARD_ICE40LP1K),y)
+	BOARD=ice40lp1k
+endif
+
+ifeq ($(LATTICE_BOARD_ICEBREAKER),y)
+	BOARD=icebreaker
+endif
+
+ifeq ($(LATTICE_BOARD_ICESUGARNANO),y)
+	BOARD=icesugarnano
+endif
+
+ifeq ($(ALTERA_BOARD_MAX1000),y)
+	BOARD=max1000
+endif
+
+ifeq ($(ALTERA_BOARD_DE10NANO),y)
+	BOARD=de10nano
+endif
 
 ##### Cluster or single target selection
 

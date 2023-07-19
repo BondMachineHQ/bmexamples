@@ -1,4 +1,10 @@
 menu "General"
+	config WORKING_DIR
+		string "Working directory"
+		default "working_dir"
+		help
+			Write the working directory name
+
 	choice GENERAL_TYPE
 		prompt "General project type"
 		default GENERAL_TYPE_BOARD
@@ -26,7 +32,7 @@ menu "BondMachine configuration"
 			bool "Basm file"
 	endchoice
 
-	config SOURCE_BONDGO
+	config SOURCE_GO
 		string "source file"
 		depends on PROJECT_TYPE_BONDGO
 		default "test.go"
@@ -107,6 +113,44 @@ menu "Board and toolchain"
 	config TOOLCHAIN_LATTICE
 	    bool "Lattice with icestorm"
 	endchoice
+
+	choice SELECT_XILINX_BOARD
+	    depends on TOOLCHAIN_XILINX
+	    prompt "Xilinx board"
+	config XILINX_BOARD_ZEDBOARD
+	    bool "Zedboard"
+	config XILINX_BOARD_BASYS3
+	    bool "Basys3"
+	config XILINX_BOARD_ZC702
+	    bool "ZC702"
+	config XILINX_BOARD_KC705
+	    bool "KC705"
+	config XILINX_BOARD_EBAZ4205
+	    bool "Ebaz4205"
+	endchoice
+
+	choice SELECT_ALTERA_BOARD
+	    depends on TOOLCHAIN_ALTERA
+	    prompt "Altera board"
+	config ALTERA_BOARD_DE0NANO
+	    bool "DE0 Nano"
+	config ALTERA_BOARD_MAX1000
+	    bool "MAX1000"
+	endchoice
+
+	choice SELECT_LATTICE_BOARD
+	    depends on TOOLCHAIN_LATTICE
+	    prompt "Lattice board"
+	config LATTICE_BOARD_ICE40LP1K
+	    bool "ice40lp1k"
+	config LATTICE_BOARD_ICEFUN
+	    bool "icefun"	
+	config LATTICE_BOARD_ICEBREAKER
+	    bool "icebreaker"
+	config LATTICE_BOARD_ICESUGARNANO
+	    bool "icesugarnano"
+	endchoice
+
 endmenu
 
 menu "External modules"
