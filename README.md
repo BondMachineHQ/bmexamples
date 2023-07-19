@@ -131,39 +131,54 @@ Create the custom buildroot linux sdcard-image.
 Wether you are reading variables from the **Kconfig** file or from the **.mk** files, the syntax is the same. The following is the list of the most commonly used variables:
 
 
-| Variable              | type          | description       |
-| --------             | --------      | --------          |
-| `BASM_DEBUG`                | boolean     | enable or not debug of basm   |
-| `BM_REGRESSION`              | KConfig Only      | missing  |
-| `BOARDLESS_PROJECT`                | KConfig only     | enable or not debug of basm   |
-| `GENERAL_TYPE`             | KConfig only        | general project type                  |
-| `GENERAL_TYPE_BOARDLESS`    |  KConfig only       | project without board                 |
-| `GENERAL_TYPE_BOARD`        |  KConfig only       | project with board                    |
-| `HDL_REGRESSION`              | filename      | missing  |
-| `PROJECT_TYPE_BONDGO`       |  KConfig Only       | BondGo project                        |
-| `PROJECT_TYPE_NEURALBOND`   |  KConfig Only       | Neural Network project                |
-| `PROJECT_TYPE_MELBOND`      |  KConfig Only       | Melbond project                       |
-| `PROJECT_TYPE_BASM`         |  KConfig Only       | sBASM project                         |
-| `PROJECT_TYPE_MULTI`       |  KConfig Only     | Root project aggregator for multiple project                      |
-| `MULTI_TARGET`       |  string     | Target to exec in case of multiple projects                       |
-| `MULTI_TYPE`       |  string       | Type of aggregation                       |
-| `MULTI_TEMPLATE_DIR`       |  directory       | directory of template to clone                       |
-| `MULTI_TEMPLATE_DESC`       |  filename       | multifilename description json file                      |
-| `SELECT_PROJECT_TYPE`       |  KConfig Only       | select project type                   |
-| `SELECT_TOOLCHAIN`       |  KConfig Only       | select toolchain                   |
-| `REGRESSION_TEST`              | KConfig Only      | missing description  |
-| `REGRESSION_TEST_BM`              | KConfig Only      | missing  |
-| `REGRESSION_TEST_HDL`              | KConfig Only      | missing  |
-| `REGRESSION_TEST_SIM`              | KConfig Only      | missing  |
-| `SIM_REGRESSION`              | KConfig Only      | missing  |
-| `SOURCE_BONDGO`       | filename     | bondGO source         |
-| `SOURCE_NEURALBOND`            | filename     | neuralbond source file          |
-| `SOURCE_MELBOND`            | filename     | melnond source file          |
-| `SOURCE_BASM`            | filenames     | basm source file          |
-| `TOOLCHAIN_ALTERA`            | boolean     | select altera toolchain          |
-| `TOOLCHAIN_LATTICE`            | boolean     | select lattice toolchain          |
-| `TOOLCHAIN_XILINX`            | boolean     | select xilinx toolchain          |
-| `UART_MAPFILE`            | filename     | support for UART          |
-| `UART_SUPPORT`            | boolean     | support for UART          |
+| Variable | type | description |
+| -------- | -------- | -------- |
+| `ALTERA_BOARD_MAX1000` | KConfig Only | Board selection max1000 |
+| `ALTERA_BOARD_DE0NANO` | KConfig Only | Board selection de0nano |
+| `BASM_DEBUG` | boolean | enable or not debug of basm |
+| `BM_REGRESSION` | KConfig Only | missing |
+| `BOARD` | KConfig Only | Board type |
+| `BOARDLESS_PROJECT` | KConfig only | enable or not debug of basm |
+| `GENERAL_TYPE` | KConfig only | general project type |
+| `GENERAL_TYPE_BOARDLESS` | KConfig only | project without board |
+| `GENERAL_TYPE_BOARD` | KConfig only | project with board |
+| `HDL_REGRESSION` | filename | missing |
+| `PROJECT_TYPE_BONDGO` | KConfig Only | BondGo project |
+| `PROJECT_TYPE_NEURALBOND` | KConfig Only | Neural Network project |
+| `PROJECT_TYPE_MELBOND` | KConfig Only | Melbond project |
+| `PROJECT_TYPE_BASM` | KConfig Only | sBASM project |
+| `PROJECT_TYPE_MULTI` | KConfig Only | Root project aggregator for multiple project |
+| `MULTI_TARGET` | string | Target to exec in case of multiple projects |
+| `MULTI_TYPE` | string | Type of aggregation |
+| `MULTI_TEMPLATE_DIR` | directory | directory of template to clone |
+| `MULTI_TEMPLATE_DESC` | filename | multifilename description json file |
+| `LATTICE_BOARD_ICE40LP1K` | Kconfig Only | Board selection Lattice ice40lp1k |
+| `LATTICE_BOARD_ICEFUN` | Kconfig Only | Board selection Lattice icefun |
+| `LATTICE_BOARD_ICEBREAKER` | Kconfig Only | Board selection Lattice icebreaker |
+| `LATTICE_BOARD_ICESUGARNANO` | Kconfig Only | Board selection Lattice icesugarnano |
+| `SELECT_PROJECT_TYPE` | KConfig Only | select project type |
+| `SELECT_TOOLCHAIN` | KConfig Only | select toolchain |
+| `SELECT_XILINX_BOARD` | KConfig Only | select board |
+| `REGRESSION_TEST` | KConfig Only | missing description |
+| `REGRESSION_TEST_BM` | KConfig Only | missing |
+| `REGRESSION_TEST_HDL` | KConfig Only | missing |
+| `REGRESSION_TEST_SIM` | KConfig Only | missing |
+| `SIM_REGRESSION` | KConfig Only | missing |
+| `SOURCE_GO` | filename | bondgo source |
+| `SOURCE_NEURALBOND` | filename | neuralbond source file |
+| `SOURCE_MELBOND` | filename | melnond source file |
+| `SOURCE_BASM` | filenames | basm source file |
+| `TOOLCHAIN` | string | FPGA tools |
+| `TOOLCHAIN_ALTERA` | Kconfig Only | select altera toolchain |
+| `TOOLCHAIN_LATTICE` | Kconfig Only | select lattice toolchain |
+| `TOOLCHAIN_XILINX` | Kconfig Only | select xilinx toolchain |
+| `UART_MAPFILE` | filename | support for UART |
+| `UART_SUPPORT` | boolean | support for UART |
+| `WORKING_DIR` | directory | Working directory path |
+| `XILINX_BOARD_BASYS3` | Kconfig Only | Board selection basys3 |
+| `XILINX_BOARD_ZEDBOARD` | KConfig Only | Board selection zedboard |
+| `XILINX_BOARD_ZC702` | KConfig Only | Board selection zc702 |
+| `XILINX_BOARD_KC705` | KConfig Only | Board selection kc705 |
+| `XILINX_BOARD_EBAZ4205` | KConfig Only | Board selection ebaz4205 |
 
 
