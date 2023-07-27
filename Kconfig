@@ -11,8 +11,15 @@ menu "General"
 	config GENERAL_TYPE_BOARD
 		bool "Project with board"
 	config GENERAL_TYPE_BOARDLESS
-		bool "Project without a borad"
+		bool "Project without a board"
 	endchoice
+
+	config MAPFILE
+		string "Pin mapping file"
+		depends on GENERAL_TYPE_BOARD
+		default ""
+		help
+			Write the pin mapping file name
 endmenu
 
 menu "BondMachine configuration"
