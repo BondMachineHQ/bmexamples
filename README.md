@@ -23,6 +23,20 @@ bmhelper create --project_name project_test
 
 This command will create a project with the name **project_test** in the current directory. The project will be created with the default configuration. The default configuration is defined in the *bmhelper* tool and can be changed with the *make menuconfig* command (or any other command that can be used to configure the Kconfig file).
 
+Additionally, the **bmhelper create** command can be used to create a project starting from a working example. To get the list of available examples, use the following command:
+
+```
+bmhelper create --list-examples
+```
+
+To duplicate an example, use the following command:
+
+```
+bmhelper create --project_name project_test --example example_name
+```
+
+where **example_name** is the name of an example in the list of examples.
+
 ### Project configuration
 
 The project configuration is defined in the **Kconfig** file. The **Kconfig** file is a text file that defines the configuration possibilities of the project. It is similar to the **Kconfig** file used in the Linux kernel. With a kconfig compatible tool the **Kconfig** file can be used to generate the specific configuration.
@@ -39,11 +53,29 @@ Details on the configuration variables are described in the **Configuration vari
 
 ### Project validation
 
-WIP
+The bmhelper tool can be used to validate the project configuration. The validation is performed with the following command:
+
+```
+make validate
+```
+
+The validation process checks the configuration variables and the project files. For each one of them the following color codes are used:
+
+- **green** : the variable or file is present and valid
+- **yellow** : the (optional) variable or file is not present 
+- **magenta** : the (mandatory) variable or file is not present but bmhelper can create it with default values
+- **red** : the (mandatory) variable or file is either not present or invalid
 
 ### Project apply
 
-WIP
+The project configuration is applied with the following command:
+
+```
+make apply
+```
+
+The apply process creates the project files and directories. The files and directories are created in the working directory. The working directory is defined by the **WORKING_DIR** variable. The default working directory is the current directory. 
+For the items marked as **magenta** in the validation process, the apply process will ask for confirmation before creating the file or directory with the default values. For the items marked as **red** in the validation process, the apply process will fail.
 
 ### Firmware generation and other targets
 
