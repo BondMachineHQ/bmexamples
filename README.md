@@ -194,6 +194,7 @@ Wether you are reading variables from the **Kconfig** file or from the **.mk** f
 | `REGRESSION_TEST_BM` | KConfig Only | missing |
 | `REGRESSION_TEST_HDL` | KConfig Only | missing |
 | `REGRESSION_TEST_SIM` | KConfig Only | missing |
+| `ROOTDIR` | string | Directory storing the board-specific files |
 | `SIM_REGRESSION` | KConfig Only | missing |
 | `SOURCE_GO` | filename | bondgo source |
 | `SOURCE_NEURALBOND` | filename | neuralbond source file |
