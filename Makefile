@@ -26,6 +26,11 @@ ifneq ($(BASM_DEBUG), )
 	BASM_ARGS+= -d
 endif
 
+ifneq ($(BASM_LIB), )
+	BASM_LIB_FILES=$(BASM_LIB)/*.basm
+endif
+
+
 ifneq ($(UART_SUPPORT), )
 	BM_ARGS+= -uart
 endif
@@ -102,7 +107,7 @@ ifndef BOARD
 	BOARD=none
 endif
 
-ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == "zc702"  || $(BOARD) == "kc705" || $(BOARD) == "ebaz4205" ]] && echo true ),true)
+ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == "zc702"  || $(BOARD) == "kc705" || $(BOARD) == "ebaz4205" || $(BOARD) == "alveou50" ]] && echo true ),true)
 	BOARDOK=yes
 	TOOLCHAIN=vivado
 	VIVADO_VERSION=$(shell vivado -version | head -n 1 | sed -e 's/.*\([0-9][0-9][0-9][0-9]\.[0-9]\).*/\1/')
@@ -120,6 +125,7 @@ ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == 
 	DEVICETREE_TARGET=$(WORKING_DIR)/vivado_devicetree
 	KERNEL_MODULE_TARGET=$(WORKING_DIR)/vivado_kernel_module
 	BUILDROOT_TARGET=$(WORKING_DIR)/vivado_buildroot
+	XCLBIN_TARGET=$(WORKING_DIR)/vivado_xclbin
 endif
 
 ifeq ($(shell [[ $(BOARD) == "max1000" || $(BOARD) == "de10nano" ]] && echo true ),true)
@@ -163,7 +169,7 @@ ifneq ($(SOURCE_BASM), )
 ifeq ($(MAINTARGET), cluster)
 $(error Unsupported)
 endif
-	SOURCE_COMMAND=basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(SOURCE_BASM)
+	SOURCE_COMMAND=basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(BASM_LIB_FILES) $(SOURCE_BASM)
 	SOURCE=$(SOURCE_BASM)
 endif
 
@@ -349,7 +355,11 @@ ifeq ($(BMAPI_FLAVOR),aximm)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-auxoutdir $(BMAPI_AUXOUTDIR) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
 endif
 ifeq ($(BMAPI_FLAVOR),axist)
+ifeq ($(BOARD),alveou50)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-modoutdir $(BMAPI_MODOUTDIR) th-bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
+else
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
+endif
 endif
 ifeq ($(BMAPI_FLAVOR),uartusb)
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) $(BMAPI_DATATYPE_ARGS)
@@ -370,10 +380,10 @@ else
 	IB_LEDS_ARGS=
 endif
 
-ifneq ($(PS2KBD), )
-	PS2KBD_ARGS=-ps2-keyboard -ps2-keyboard-map $(PS2KBD_MAP)
+ifneq ($(PS2IOKBD), )
+	PS2IOKBD_ARGS=-ps2-keyboard-io -ps2-keyboard-io-map $(PS2IOKBD_MAP)
 else
-	PS2KBD_ARGS=
+	PS2IOKBD_ARGS=
 endif
 
 ifneq ($(VGATEXT), )
@@ -484,6 +494,7 @@ devicetree: $(DEVICETREE_TARGET) | $(WORKING_DIR) checkenv
 kernel_module: $(KERNEL_MODULE_TARGET) | $(WORKING_DIR) checkenv
 buildroot: $(BUILDROOT_TARGET) | $(WORKING_DIR) checkenv
 bmapp: $(WORKING_DIR)/bmapp_target | $(WORKING_DIR) checkenv
+xclbin: $(XCLBIN_TARGET) | $(WORKING_DIR) checkenv
 
 .PHONY: program
 program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
@@ -530,7 +541,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2KBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
@@ -1046,22 +1057,22 @@ ifeq ($(BMAPI_FLAVOR),)
 endif
 	cat $(ROOTDIR)/$(BOARD)_$(BMAPI_FLAVOR)_template_accelerator.tcl >> $(WORKING_DIR)/vivado-script-accelerator.tcl
 	bash -c "cd $(WORKING_DIR) ; vivado -mode batch -source vivado-script-accelerator.tcl"
-	cp -a $(WORKING_DIR)/bondmachine.sv $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachine.sv
-	cp -a $(WORKING_DIR)/bondmachine.vhd $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachine.vhd
+	cp -a $(WORKING_DIR)/bondmachine.sv $(WORKING_DIR)/ip_repo/bondmachineip_1_0/hdl/bondmachine.sv
+	cp -a $(WORKING_DIR)/bondmachine.vhd $(WORKING_DIR)/ip_repo/bondmachineip_1_0/hdl/bondmachine.vhd
 ifeq ($(BMAPI_FLAVOR), axist)
-	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_M00_AXIS.v
-	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXIS.v
-	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0_M00_AXIS.v
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0_S00_AXIS.v
+	rm -f $(WORKING_DIR)/ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0.v
 endif
 ifeq ($(BMAPI_FLAVOR),aximm)	
 	# Comments
 	cp -a $(ROOTDIR)/vivadoAXIcomment.sh $(WORKING_DIR)/vivadoAXIcomment.sh
 	bash -c "cd $(WORKING_DIR) ; ./vivadoAXIcomment.sh"
 	# Insert the AXI code
-	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Add user logic here/r aux/axipatch.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXI.v"
-	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0_S00_AXI.v"
-	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v"
-	bash -c "cd $(WORKING_DIR) ; sed -i -e '/bondmachineip_v1_0_S00_AXI_inst/r aux/designexternalinst.txt' ./ip_repo/bondmachineip_1.0/hdl/bondmachineip_v1_0.v"
+	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Add user logic here/r aux/axipatch.txt' ./ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0_S00_AXI.v"
+	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0_S00_AXI.v"
+	bash -c "cd $(WORKING_DIR) ; sed -i -e '/Users to add ports here/r aux/designexternal.txt' ./ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0.v"
+	bash -c "cd $(WORKING_DIR) ; sed -i -e '/bondmachineip_v1_0_S00_AXI_inst/r aux/designexternalinst.txt' ./ip_repo/bondmachineip_1_0/hdl/bondmachineip_v1_0.v"
 endif
 	@touch $(WORKING_DIR)/vivado_accelerator
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - IP accelerator creation end]$(DEFC)"
@@ -1192,6 +1203,26 @@ endif
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - buildroot BR2 creation end]$(DEFC)"
 	@echo
 
+$(WORKING_DIR)/vivado_xclbin: $(WORKING_DIR)/hdl_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - xclbin creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+ifeq ($(BMAPI_FLAVOR),)
+	$(error BMAPI_FLAVOR is undefined)
+endif
+ifeq ($(BMAPI_MODOUTDIR),)
+	$(error BMAPI_MODOUTDIR is undefined)
+endif
+ifeq ($(PLATFORM),)
+	$(error PLATFORM is undefined)
+endif
+	cat $(ROOTDIR)/$(BOARD)_gen_xo.tcl > $(BMAPI_MODOUTDIR)/src/krnl_bondmachine/gen_xo.tcl
+	cat $(ROOTDIR)/$(BOARD)_package_kernel.tcl >> $(BMAPI_MODOUTDIR)/src/krnl_bondmachine/package_kernel.tcl
+	for i in `ls $(ROOTDIR)/$(BOARD)_xclbin/*` ; do cp $$i $(BMAPI_MODOUTDIR)/ ; done
+	cp -a $(WORKING_DIR)/bondmachine.sv $(BMAPI_MODOUTDIR)/src/krnl_bondmachine/hdl/bondmachine.sv
+	cp -a $(WORKING_DIR)/bondmachine.vhd $(BMAPI_MODOUTDIR)/src/krnl_bondmachine/hdl/bondmachine.vhd
+	@make --no-print-directory  -C $(BMAPI_MODOUTDIR) build  target=hw PLATFORM=$(PLATFORM)
+	@touch $(WORKING_DIR)/vivado_xclbin
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - xclbin creation end]$(DEFC)"
+	@echo
 
 
 
