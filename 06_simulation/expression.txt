@@ -1,0 +1,8 @@
+var(z)=or(var(x),not(var(y)))
+var(t)=or(nand(var(x),var(y)),var(z))
+var(l)=and(xor(var(x),var(y)),var(t))
+i:var(x)
+i:var(y)
+o:var(z)
+o:var(t)
+o:var(l)
