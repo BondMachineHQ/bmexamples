@@ -1,0 +1,10 @@
+USE_BMAPI=yes
+BMAPI_LANGUAGE=python
+BMAPI_FLAVOR=axist
+BMAPI_FLAVOR_VERSION=basic
+BMAPI_MAPFILE=bmapi.json
+BMAPI_LIBOUTDIR=working_dir/bmapi
+BMAPI_MODOUTDIR=working_dir/rtl_bondmachine
+BMAPI_FRAMEWORK=pynq
+BMAPI_GENERATE_EXAMPLE=notebook.ipynb
+BMAPI_DATATYPE=unsigned
