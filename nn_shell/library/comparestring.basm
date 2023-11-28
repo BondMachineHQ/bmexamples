@@ -1,0 +1,31 @@
+; Compare a string rom/ram
+; r0 pointer to the buffer beginning (es: mov r0, ram:buff)
+; r1 pointer to the ROM string
+; r2 is the lenght
+%fragment comparestring default_mem1:ram default_mem2:rom
+cmpchar:
+	mov	r3, {{ .Params.mem1 }}:[r0]
+	mov	r4, {{ .Params.mem2 }}:[r1]
+	cmpr	r3, r4
+	dec	r2
+	jz	r2, end
+	inc	r0
+	inc	r1
+	jcmp	cmpchar
+end:
+	nop
+%endfragment
+
+; Docs (GitHub copilot generated)
+
+; The file comparestring.basm is a file containing assembly code written in the BASM language. 
+; The purpose of this code is to compare two strings, one stored in ROM and the other in RAM, and determine if they are equal.
+; The code defines a fragment called comparestring which takes three arguments: r0, r1, and r2.
+; r0 is a pointer to the beginning of the buffer in RAM,
+; r1 is a pointer to the beginning of the string in ROM, 
+; and r2 is the length of the string.
+; The code then uses a loop to compare each character of the two strings. 
+; It loads the current character from RAM into r3 and the current character from ROM into r4, and then compares them using the cmpr instruction. 
+; If the characters are not equal, the loop exits and the code jumps to the end label. 
+; If the characters are equal, the loop continues until all characters have been compared.
+; Once the loop has completed, the code reaches the end label and exits the comparestring fragment.
