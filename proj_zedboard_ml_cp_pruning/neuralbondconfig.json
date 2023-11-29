@@ -1,6 +1,12 @@
 {
+  "DataType": "float32",
+  "TypePrefix": "0f\u003c32\u003e",
   "Params": {
-    "expprec": "20"
+    "addop": "addf",
+    "divop": "divf",
+    "expprec": "20",
+    "multop": "multf",
+    "typeprefix": "0f\u003c32\u003e"
   },
   "Pruned": [],
   "Collapsed": [],
