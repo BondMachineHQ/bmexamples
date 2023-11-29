@@ -1,0 +1,10 @@
+{
+	"expprec": 20,
+        "cps": 2,
+        "bonds": 9,
+        "luts": 21242,
+        "regs": 4496,
+        "power": 0.829,
+        "clock_freq": 100
+}
+
