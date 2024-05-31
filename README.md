@@ -1,1 +1,3 @@
-Test
+The repository [https://github.com/BondMachineHQ/bmexamples](https://github.com/BondMachineHQ/bmexamples) is the main source of examples for the BondMachine project. The examples are organized according to the following logic:
+
+examples starting with a number, from 01.. to 17.. are the exampled used in the course of ...
