@@ -1,5 +1,3 @@
-# Projects
-
 A BondMachine project is a directory that contains all the necessary files to generate the firmware for a specific board.
 The project is created with the **bmhelper create** command line tool, which is installed with the BondMachine framework. It is configured using a Kconfig file, with commands similar to the Linux kernel (for example: make menuconfig). It is then validated and completed with the **bmhelper validate** and **bmhelper apply** commands.
 Once the project is applied, it is possible to generate the firmware and make all the other operations with the **make** command and several targets.
