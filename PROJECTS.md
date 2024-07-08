@@ -15,7 +15,7 @@ The project workflow is divided into several steps:
 
 An enpty project can be created with the following command:
 
-```
+```bash
 bmhelper create --project_name project_test
 ```
 
@@ -23,13 +23,13 @@ This command will create a project with the name **project_test** in the current
 
 Additionally, the **bmhelper create** command can be used to create a project starting from a working example. To get the list of available examples, use the following command:
 
-```
+```bash
 bmhelper create --list-examples
 ```
 
 To duplicate an example, use the following command:
 
-```
+```bash
 bmhelper create --project_name project_test --example example_name
 ```
 
@@ -53,7 +53,7 @@ Details on the configuration variables are described in the **Configuration vari
 
 The bmhelper tool can be used to validate the project configuration. The validation is performed with the following command:
 
-```
+```bash
 make validate
 ```
 
@@ -68,7 +68,7 @@ The validation process checks the configuration variables and the project files.
 
 The project configuration is applied with the following command:
 
-```
+```bash
 make apply
 ```
 
@@ -79,20 +79,20 @@ For the items marked as **magenta** in the validation process, the apply process
 
 After creating and appling a project, you can use the **make** command to generate firmware and perform other operations. The **make** command can be used with several targets. The targets are defined in the **Makefile** file and are described in the following sections.
 
-```
+```bash
 make bondmachine
 
 Create the Bondmachine and all its connecting processors.
 You can view a diagram of the Bondmachine just created with the following instructions:
 ```
 
-```
+```bash
 make show
 
 Use graphviz to visualize the architecture generated. 
 ```
 
-```
+```bash
 make hdl
 
 Generate the source HDL code (i.e. working_dir/bondmachine.sv, working_dir/bondmachine.vhd)
@@ -100,25 +100,25 @@ Generate the source HDL code (i.e. working_dir/bondmachine.sv, working_dir/bondm
 
 The first workflow commands are:
 
-```
+```bash
 make synthesis
 
 Start the project synthesis
 ```
 
-```
+```bash
 make implementation
 
 Start the project implementation
 ```
 
-```
+```bash
 make bitstream
 
 Start the project bitstream generation
 ```
 
-```
+```bash
 make program
 
 program the board if connected
@@ -126,35 +126,34 @@ program the board if connected
 
 The second workflow commands are:
 
-```
+```bash
 make design_synthesis
 
 Start the project synthesis
 ```
 
-```
+```bash
 make design_implementation
 
 Start the project implementation
 ```
 
-```
+```bash
 make design_bitstream
 
 Start the project bitstream generation
 ```
 
-```
+```bash
 make kernel_module
 
 Create the kernel module which runs on custom buildroot linux distribution
 ```
 
-```
+```bash
 make buildroot
-
-Create the custom buildroot linux sdcard-image.
 ```
+Create the custom buildroot linux sdcard-image.
 
 ## Configuration variables
 
