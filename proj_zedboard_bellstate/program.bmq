@@ -1,0 +1,8 @@
+%block code1 .sequential
+        qbits   q0,q1
+        zero    q0,q1
+	h	q0
+	cx	q0,q1
+%endblock
+
+%meta bmdef global main:code1

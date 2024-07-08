@@ -107,7 +107,7 @@ ifndef BOARD
 	BOARD=none
 endif
 
-ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == "zc702"  || $(BOARD) == "kc705" || $(BOARD) == "ebaz4205" || $(BOARD) == "alveou50" ]] && echo true ),true)
+ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == "zc702"  || $(BOARD) == "kc705" || $(BOARD) == "ebaz4205" || $(BOARD) == "alveou50" || $(BOARD) == "alveou55c" ]] && echo true ),true)
 	BOARDOK=yes
 	TOOLCHAIN=vivado
 	VIVADO_VERSION=$(shell vivado -version | head -n 1 | sed -e 's/.*\([0-9][0-9][0-9][0-9]\.[0-9]\).*/\1/')
@@ -155,7 +155,7 @@ endif
 
 ifeq ($(shell [[ $(BOARD) == "ice40lp1k" ]] && echo true ),true)
 	BOARD_MODEL="lp1k"
-	BOARD_PACKAGE="qn84"
+	BOARD_PACKAGE="vq100"
 endif
 
 ifeq ($(shell [[ $(BOARD) == "icebreaker" ]] && echo true ),true)
@@ -237,6 +237,40 @@ $(error Unsupported)
 endif
 	SOURCE_COMMAND=neuralbond -net-file $(SOURCE_NEURALBOND) -neuron-lib-path $(NEURALBOND_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(NEURALBOND_ARGS) $(BMINFO_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(NEURALBOND_LIBRARY)/*.basm
 	SOURCE=$(SOURCE_NEURALBOND)
+endif
+
+ifneq ($(SOURCE_QUANTUM), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=bmqsim  -save-basm $(WORKING_DIR)/bondmachine.basm $(QUANTUM_ARGS) $(BMINFO_ARGS) $(SOURCE_QUANTUM) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm
+	SOURCE=$(SOURCE_QUANTUM)
+endif
+
+ifneq ($(SOURCE_QUANTUMFULL), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=bmqsim -build-full-hw-hardcoded -save-bondmachine $(WORKING_DIR)/bondmachine.json $(QUANTUM_ARGS) $(SOURCE_QUANTUMFULL)
+	SOURCE=$(SOURCE_QUANTUMFULL)
+endif
+
+
+ifneq ($(SOURCE_BMBUILDER), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=bmbuilder -save-bondmachine $(WORKING_DIR)/bondmachine.json $(BMBUILDER_ARGS) $(SOURCE_BMBUILDER)
+	SOURCE=$(SOURCE_BMBUILDER)
+endif
+
+
+ifneq ($(SOURCE_BMGRAPH), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=bmgraph -graph-file $(SOURCE_BMGRAPH) -neuron-lib-path $(BMGRAPH_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(BMGRAPH_ARGS) $(BMINFO_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(BMGRAPH_LIBRARY)/*.basm
+	SOURCE=$(SOURCE_BMGRAPH)
 endif
 
 ifneq ($(SOURCE_MELBOND), )
@@ -356,9 +390,13 @@ ifeq ($(BMAPI_FLAVOR),aximm)
 endif
 ifeq ($(BMAPI_FLAVOR),axist)
 ifeq ($(BOARD),alveou50)
-	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-modoutdir $(BMAPI_MODOUTDIR) th-bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
+else
+ifeq ($(BOARD),alveou55c)
+	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-modoutdir $(BMAPI_MODOUTDIR) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
 else
 	BMAPI_ARGS=-use-bmapi -bmapi-flavor $(BMAPI_FLAVOR) $(BMAPI_LANGUAGE_ARGS) -bmapi-mapfile $(BMAPI_MAPFILE) -bmapi-liboutdir $(BMAPI_LIBOUTDIR) $(BMAPI_FRAMEWORK_ARGS) -bmapi-flavor-version $(BMAPI_FLAVOR_VERSION) -bmapi-generate-example $(BMAPI_GENERATE_EXAMPLE) $(BMAPI_DATATYPE_ARGS)
+endif
 endif
 endif
 ifeq ($(BMAPI_FLAVOR),uartusb)
@@ -378,6 +416,18 @@ ifneq ($(IB_LEDS), )
 	IB_LEDS_ARGS=-icebreaker-leds -icebreaker-leds-map $(IB_LEDS_MAP)
 else
 	IB_LEDS_ARGS=
+endif
+
+ifneq ($(IF_LEDS), )
+	IF_LEDS_ARGS=-icefun-leds -icefun-leds-map $(IF_LEDS_MAP)
+else
+	IF_LEDS_ARGS=
+endif
+
+ifneq ($(I4_LEDS), )
+	I4_LEDS_ARGS=-ice40lp1k-leds -ice40lp1k-leds-map $(I4_LEDS_MAP)
+else
+	I4_LEDS_ARGS=
 endif
 
 ifneq ($(PS2IOKBD), )
@@ -495,6 +545,7 @@ kernel_module: $(KERNEL_MODULE_TARGET) | $(WORKING_DIR) checkenv
 buildroot: $(BUILDROOT_TARGET) | $(WORKING_DIR) checkenv
 bmapp: $(WORKING_DIR)/bmapp_target | $(WORKING_DIR) checkenv
 xclbin: $(XCLBIN_TARGET) | $(WORKING_DIR) checkenv
+hdl_simulation: $(WORKING_DIR)/hdl_simulation_target | $(WORKING_DIR) checkenv
 
 .PHONY: program
 program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
@@ -541,7 +592,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(IF_LEDS_ARGS) $(I4_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
@@ -604,9 +655,42 @@ endif
 ifneq ($(DEPLOY_APP),)
 	scp $(SSH_ARGS) $(DEPLOY_APP) $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/
 endif
-endif	
-
+endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine deploy end]$(DEFC)"
+	@echo
+
+.PHONY: deploy_xclbin
+deploy_xclbin: $(WORKING_DIR)/vivado_xclbin | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy xclbin begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+
+ifeq ($(DEPLOY_TYPE),local)
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy local]$(DEFC)"
+
+ifeq ($(DEPLOY_OVERRIDE),true)
+	if [ -d $(DEPLOY_PATH) ]; then rm -rf $(DEPLOY_PATH); fi
+else
+	if [ -d $(DEPLOY_PATH) ]; then exit 1; fi
+endif
+
+ifneq ($(DEPLOY_CLONE),)
+	if [ -d $(DEPLOY_CLONE) ]; then cp -a $(DEPLOY_CLONE) $(DEPLOY_PATH); fi
+else
+	if [ ! -d $(DEPLOY_PATH) ]; then mkdir -p $(DEPLOY_PATH); fi
+endif
+
+ifeq ($(DEPLOY_BITTYPE),xclbin)
+	cp $(WORKING_DIR)/rtl_bondmachine/build_dir.hw.$(PLATFORM)/bondmachine.xclbin $(DEPLOY_PATH)/firmware.xclbin
+else
+	cp $(WORKING_DIR)/bmaccelerator/bmaccelerator.runs/impl_1/bm_design_wrapper.bit $(DEPLOY_PATH)/firmware.bit
+	cp $$(find | grep hwh) $(DEPLOY_PATH)/firmware.hwh
+endif
+endif
+
+ifneq ($(DEPLOY_APP),)
+	cp $(DEPLOY_APP) $(DEPLOY_PATH)/
+endif
+
+	@echo -e "$(PJP)$(INFOC)[BondMachine deploy xclbin end]$(DEFC)"
 	@echo
 
 .PHONY: deployrun
@@ -869,6 +953,14 @@ endif
 	@echo
 
 
+##### HDL simulation targets
+
+$(WORKING_DIR)/hdl_simulation_target: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
+	cp $(SIMBOX_FILE) $(WORKING_DIR)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor iverilog $(BENCHCORE_ARGS) $(VERILOG_OPTIONS) -verilog-simulation -simbox-file $(WORKING_DIR)/$(SIMBOX_FILE) -sim-interactions $(SIM_INTERACTIONS)
+	echo > $(WORKING_DIR)/bondmachine_simulation.sv
+	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine_simulation.sv ; done
+	rm -f *.v
 
 
 ##### Iverilog gtkwave toolchain
@@ -976,11 +1068,15 @@ $(WORKING_DIR)/icestorm_bitstream: $(WORKING_DIR)/icestorm_implementation | $(WO
 $(WORKING_DIR)/icestorm_program: $(WORKING_DIR)/icestorm_bitstream | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 ifeq ($(BOARD),icefun)
-	iceFUNprog $(WORKING_DIR)/bondmachine.bin
+	icefunprog /dev/ttyACM0 $(WORKING_DIR)/bondmachine.bin
 endif
 ifeq ($(BOARD),icebreaker)
 	iceprog $(WORKING_DIR)/bondmachine.bin
 endif
+ifeq ($(BOARD),ice40lp1k)
+	sudo iCEburn -ew $(WORKING_DIR)/bondmachine.bin
+endif
+
 
 	@touch $(WORKING_DIR)/icestorm_program
 	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - programming end]$(DEFC)"
