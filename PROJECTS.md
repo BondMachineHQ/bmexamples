@@ -5,6 +5,7 @@ Once the project is applied, it is possible to generate the firmware and make al
 ## Project workflow
 
 The project workflow is divided into several steps:
+
 - project creation
 - project configuration
 - project validation
@@ -75,85 +76,59 @@ make apply
 The apply process creates the project files and directories. The files and directories are created in the working directory. The working directory is defined by the **WORKING_DIR** variable. The default working directory is the current directory. 
 For the items marked as **magenta** in the validation process, the apply process will ask for confirmation before creating the file or directory with the default values. For the items marked as **red** in the validation process, the apply process will fail.
 
-### Firmware generation and other targets
+### Generic targets
 
 After creating and appling a project, you can use the **make** command to generate firmware and perform other operations. The **make** command can be used with several targets. The targets are defined in the **Makefile** file and are described in the following sections.
 
-```bash
-make bondmachine
+The following targets are available for any type of project independently of the board/toolchain:
 
-Create the Bondmachine and all its connecting processors.
-You can view a diagram of the Bondmachine just created with the following instructions:
-```
+| **Command** | **Description** |
+|--------|--------|
+| `make bondmachine` | Create the Bondmachine and all its connecting processors. Starting from the specific source file and source tool, the Bondmachine is created and save as JSON file. |
+| `make clean` | Clean the project directory. |
+| `make show` | Use graphviz to visualize the architecture generated. |
+| `make hdl` | Generate the source HDL code (i.e. working_dir/bondmachine.sv, working_dir/bondmachine.vhd) |
 
-```bash
-make show
+Staring from the **hdl** target, several workflow are available depending on several factors like the board, the toolchain, the use as accelerator or as stand-alone project.
 
-Use graphviz to visualize the architecture generated. 
-```
+### Stand-alone project
 
-```bash
-make hdl
+Stand-alone projects only require the FPGA board to run.
+The following targets are available for stand-alone projects:
 
-Generate the source HDL code (i.e. working_dir/bondmachine.sv, working_dir/bondmachine.vhd)
-```
+| **Command** | **Description** |
+|--------|--------|
+| `make synthesis` | Start the project synthesis |
+| `make implementation` | Start the project implementation |
+| `make bitstream` | Start the project bitstream generation |
+| `make program` | Program the board if connected |
 
-The first workflow commands are:
+### SoC Accelerator project
 
-```bash
-make synthesis
+SoC Accelerator projects require a board with a SoC
+processor to run. The SoC processor is connected to the FPGA fabric and can be used to run the BondMachine. Examples of SoC processors are the ARM processors in the Zynq SoC or the Cyclone V SoC.
 
-Start the project synthesis
-```
+The following targets are available for SoC accelerator projects:
 
-```bash
-make implementation
+| **Command** | **Description** |
+|--------|--------|
+| `make design_synthesis` | Start the project synthesis |
+| `make design_implementation` | Start the project implementation |
+| `make design_bitstream` | Start the project bitstream generation |
+| `make kernel_module` | Create the kernel module which runs on custom buildroot linux distribution |
+| `make buildroot` | Create the custom buildroot linux sdcard-image |
+| `make deploy` | Deploy the bitstream, kernel module and eventually the application on the board |
 
-Start the project implementation
-```
+### PCie Accelerator project (Xilinx)
 
-```bash
-make bitstream
+PCie Accelerator projects require a board with a PCie interface to run. The PCie interface is used to connect the FPGA to the host PC. The host PC can be used to run the BondMachine. Examples of PCie boards are the Xilinx Alveo boards.
 
-Start the project bitstream generation
-```
+The following targets are available for PCie accelerator projects:
 
-```bash
-make program
-
-program the board if connected
-```
-
-The second workflow commands are:
-
-```bash
-make design_synthesis
-
-Start the project synthesis
-```
-
-```bash
-make design_implementation
-
-Start the project implementation
-```
-
-```bash
-make design_bitstream
-
-Start the project bitstream generation
-```
-
-```bash
-make kernel_module
-
-Create the kernel module which runs on custom buildroot linux distribution
-```
-
-```bash
-make buildroot
-```
-Create the custom buildroot linux sdcard-image.
+| **Command** | **Description** |
+|--------|--------|
+| `make xclbin` | Create the xclbin file |
+| `make deploy_xclbin` | Deploy the xclbin file and eventually the application on the host |
 
 ## Configuration variables
 
