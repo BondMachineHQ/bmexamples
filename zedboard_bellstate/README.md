@@ -7,7 +7,7 @@ The circuit of the Bell state is shown below:
 The circuit consists of two qubits, q0 and q1. The Hadamard gate is applied to q0, followed by a CNOT gate with q0 as the control and q1 as the target. This translates to the following quantum circuit written in
 bmq language:
 
-``` bmq
+``` asm
 %block code1 .sequential
 	qbits	q0,q1
 	zero	q0,q1
