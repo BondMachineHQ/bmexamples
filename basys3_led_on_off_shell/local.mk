@@ -7,7 +7,5 @@ BASM_LIB=library
 MAPFILE=basys3_maps.json
 SHOWARGS=-dot-detail 5
 VERILOG_OPTIONS=-comment-verilog -bcof-file $(WORKING_DIR)/bondmachine.bcof
-include simulation.mk
-#include slow.mk
 include ps2.mk
 include vga.mk
