@@ -91,7 +91,7 @@ The following targets are available for any type of project independently of the
 
 Staring from the **hdl** target, several workflow are available depending on several factors like the board, the toolchain, the use as accelerator or as stand-alone project.
 
-### Stand-alone project
+### Stand-alone workflow
 
 Stand-alone projects only require the FPGA board to run.
 The following targets are available for stand-alone projects:
@@ -103,7 +103,7 @@ The following targets are available for stand-alone projects:
 | `make bitstream` | Start the project bitstream generation |
 | `make program` | Program the board if connected |
 
-### SoC Accelerator project
+### SoC Accelerator workflow
 
 SoC Accelerator projects require a board with a SoC
 processor to run. The SoC processor is connected to the FPGA fabric and can be used to run the BondMachine. Examples of SoC processors are the ARM processors in the Zynq SoC or the Cyclone V SoC.
@@ -119,7 +119,7 @@ The following targets are available for SoC accelerator projects:
 | `make buildroot` | Create the custom buildroot linux sdcard-image |
 | `make deploy` | Deploy the bitstream, kernel module and eventually the application on the board |
 
-### PCie Accelerator project (Xilinx)
+### PCie Accelerator workflow (Xilinx)
 
 PCie Accelerator projects require a board with a PCie interface to run. The PCie interface is used to connect the FPGA to the host PC. The host PC can be used to run the BondMachine. Examples of PCie boards are the Xilinx Alveo boards.
 
