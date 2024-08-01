@@ -50,7 +50,13 @@ if the project is valid, it can be finalized by running the following command:
 make apply
 ```
 
-From here, all the make targets can be run. This project make use of the **SoC accelerator workflow**. You can find more information about this workflow in the documentation about the BondMachine projects.
+From here, all the make targets can be run. This project make use of the **SoC accelerator workflow**. You can find more information about this workflow in the documentation about the BondMachine projects. In particular, if you are curious about how the accelerator is built in term of processors and their connections, you can run the following command to show the BM layout:
+
+``` bash
+make show
+```
+
+![BM layout](diagram.png)
 
 The following command will execute in sequence all the targets needed to build the accelerator for the ZedBoard:
 

@@ -1,1 +1,1 @@
-This example shows e simple shell that turns on and off the LEDs of the Basys3 board. 
+This example shows a simple shell that turns on and off the LEDs of the Basys3 board. 
