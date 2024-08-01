@@ -1,0 +1,72 @@
+%section code .romtext iomode:async
+        entry _start    ; Entry point
+_start:
+	mov	r0, ram:buff
+	call8s	readstring
+;	mov	o0, r2
+
+	mov	r0, ram:buff
+	mov	r1, rom:cmd1s
+	call8s	comparestring
+	mov	r3, rom:cmd1p
+	mov	r4, rom:[r3]
+	jcmp	rom:[r4]
+
+	mov	r0, ram:buff
+	mov	r1, rom:cmd2s
+	call8s	comparestring
+	mov	r3, rom:cmd2p
+	mov	r4, rom:[r3]
+	jcmp	rom:[r4]
+	
+	j _start
+end:
+	j end
+cmd1:
+	rsets8	r0, 1
+	mov	o0, r0
+	mov	r0, rom:messageon
+	mov	r1, 16
+	call8s	putstring
+	j	_start
+cmd2:
+	rsets8	r0, 0
+	mov	o0, r0
+	mov	r0, rom:messageoff
+	mov	r1, 16
+	call8s	putstring
+	j	_start
+%endsection
+
+%section code2 .ramtext iomode:async
+        entry _start    ; Entry point
+_start:
+        clr     r0
+end:
+        jmp     end
+%endsection
+
+%section constants .ramdata
+        buff db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+%endsection
+
+%section constants2 .romdata
+        cmd1l db 0x02
+	cmd1s db "on", 0x00
+	cmd1p sym rom:cmd1
+        cmd2l db 0x03
+	cmd2s db "off", 0x00
+	cmd2p sym rom:cmd2
+	messageon db "Led On! ", 0x00
+	messageoff db "Led Off!", 0x00
+%endsection
+
+
+%meta cpdef	cpu	romcode: code, ramcode: code2, ramdata: constants, execmode: hy, romdata: constants2
+%meta ioatt     testioin cp: cpu, index:0, type:input
+%meta ioatt     testioin cp: bm, index:0, type:input
+%meta ioatt     testioout cp: cpu, index:0, type:output
+%meta ioatt     testioout cp: bm, index:0, type:output
+%meta bmdef	global registersize:16
+%meta sodef     videomemory    constraint:vtextmem:0:3:3:16:16
+%meta soatt     videomemory cp: cpu, index:0
