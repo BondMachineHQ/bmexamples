@@ -1,9 +1,9 @@
 %section code .romtext iomode:async
         entry _start    ; Entry point
 _start:
-	mov	r0, ram:buff
-	call8s	readstring
-;	mov	o0, r2
+	mov	r0, ram:buff  ; r0 pointer to the buffer beginning
+	call8s	readstring    ; call readstring, r0 pointer to the buffer beginning, r2 lenght of the string getted
+;	mov	o0, r2        ; The lenght of the string is printed on the leds just for debug
 
 	mov	r0, ram:buff
 	mov	r1, rom:cmd1s
