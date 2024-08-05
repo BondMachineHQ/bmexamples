@@ -1,1 +1,2 @@
-This example shows a simple shell that turns on and off the LEDs of the Basys3 board. 
+This example shows a simple shell that give commends to turn on and off a LED of the Basys3 board. The commands are: `on` and `off`. The shell is implemented in Basm, the BondMachine assembly. The example also use the VGA and the keyboard modules to show the shell in the screen and to get the commands from the user.
+
