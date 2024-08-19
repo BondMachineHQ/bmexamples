@@ -20,6 +20,13 @@ menu "General"
 		default ""
 		help
 			Write the pin mapping file name
+	
+	config BOARD_NUM
+		int "Board number"
+		depends on GENERAL_TYPE_BOARD
+		default 0
+		help
+			If you have more than one board, write the board number here. It will be used program the specific board
 endmenu
 
 menu "BondMachine configuration"

@@ -1141,6 +1141,9 @@ ifeq ($(BOARD),basys3)
 		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices] 0]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
 	cat $(ROOTDIR)/$(BOARD)_template_program_2.tcl >> $(WORKING_DIR)/vivado-script-program.tcl
+ifneq ($(BOARD_NUM),)
+	sed -i -e "s/\] 0\]/\] $(BOARD_NUM)\]/g" $(WORKING_DIR)/vivado-script-program.tcl
+endif
 	bash -c "cd $(WORKING_DIR) ; vivado -mode batch -source vivado-script-program.tcl"
 	@touch $(WORKING_DIR)/vivado_program
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - programming end]$(DEFC)"
