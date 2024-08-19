@@ -2,6 +2,6 @@
 "Assoc" : {
 	"clk" : "clk",
 	"reset" : "btnC",
-	"o0": "[7:0] led"
+	"o0": "[15:0] led"
 	}
 }

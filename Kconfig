@@ -176,6 +176,19 @@ config UART_MAPFILE
     help
       UART PIM mapping file
 
+config BOARD_SLOW
+    bool "Slow board"
+    default n
+    help
+      Slow board
+
+config BOARD_SLOW_FACTOR
+    int "Slow board factor"
+    depends on BOARD_SLOW
+    default 23
+    help
+      Slow board factor
+
 endmenu
 
 menu "Testing and debugging"
