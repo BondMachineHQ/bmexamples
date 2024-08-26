@@ -1,6 +1,6 @@
  This example demonstrates how to blink the LEDs on the Basys3 FPGA board. It is one of the simplest possible BondMachine architectures, and is a good starting point for learning how to use BondMachine. The generated architecture is minimalistic, it only contains 3 instructions, 2 registers of a single bit, and some ROM memory for the program. The example originates from the following BASM code:
 
-```assembly
+```asm
 %section code .romtext
 	entry _start    ; Entry point
 _start:
@@ -31,7 +31,7 @@ make program
 Following is the output of the `make specs` command. It shows the details of the generated architecture in terms of the number of instructions, registers, ROM memory, and other details.
 It shows how tiny the architecture is, with only 3 instructions, 2 registers, and a small ROM memory.
 
-```
+```text
 Register size: 1
 Processors:
   0:
