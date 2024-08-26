@@ -1,4 +1,4 @@
- This example demonstrates how to blink the LEDs on the Basys3 FPGA board. It is one of the simplest possible BondMachine architectures, and is a good starting point for learning how to use BondMachine. The generated architecture is minimalistic, it only contains 3 instructions, 2 registers of a single bit, and some ROM memory for the program. The example originates from the following BASM code:
+ This example demonstrates how to blink a LED on several FPGA board. It is one of the simplest possible BondMachine architectures, and is a good starting point for learning how to use BondMachine. The generated architecture is minimalistic, it only contains 3 instructions, 2 registers of a single bit, and some ROM memory for the program. The example originates from the following BASM code:
 
 ```asm
 %section code .romtext
@@ -19,9 +19,9 @@ The example is simple, it increments a register and writes it to the output port
 
 if the following requirements are met:
  - vivado installed and in the PATH
- - the Basys3 board connected to the computer
+ - the board connected to the computer
 
-then the example can be build and run using the following commands within the `basys3_blink` directory:
+then the example can be build and run using the following commands within the `[boardname]_blink` directory:
 
 ```bash
 make apply
