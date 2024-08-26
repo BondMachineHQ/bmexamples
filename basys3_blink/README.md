@@ -18,8 +18,9 @@ _start:
 The example is simple, it increments a register and writes it to the output port. The program is executed in a loop, so the output port will blink. The example is also used to demonstrate the use of the `ioatt` meta-attribute, which is used to define the input/output ports of the architecture. The `bmdef` meta-attribute is used to define the size of the register in the architecture. The `meta` attributes are used to define the architecture, and the `section` and `endsection` directives are used to define the program code. The program code is written in BASM assembly language, which is a simple assembly language that is used to define the program code of the architecture.
 
 if the following requirements are met:
- - vivado installed and in the PATH
- - the board connected to the computer
+
+- the FPGA tools for the specific board installed and in the PATH
+- the board connected to the computer
 
 then the example can be build and run using the following commands within the `[boardname]_blink` directory:
 
