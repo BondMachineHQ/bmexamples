@@ -1,0 +1,2 @@
+IB_LEDS=1
+IB_LEDS_MAP=o0
