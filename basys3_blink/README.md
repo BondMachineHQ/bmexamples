@@ -1,3 +1,5 @@
+ # Led Blink Example
+ 
  This example demonstrates how to blink a LED on several FPGA board. It is one of the simplest possible BondMachine architectures, and is a good starting point for learning how to use BondMachine. The generated architecture is minimalistic, it only contains 3 instructions, 2 registers of a single bit, and some ROM memory for the program. The example originates from the following BASM code:
 
 ```asm
