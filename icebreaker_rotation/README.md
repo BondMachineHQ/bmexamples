@@ -1,6 +1,6 @@
 # Led Rotation on the Icebreaker Board
 
-
+The purpose of this project is to demonstrate the use of the `icebreaker` board a BondMachine architecture. It is a very simple one, with only one processor and a few instructions. The processor is connected to a single output, which is used to control the rotation of the LEDs on the board. The code, written in the BondMachine assembly language, is very simple. It sets the output to different values and then jumps back to the beginning. This causes the LEDs to rotate.
 
 ```asm
 %section code .romtext
@@ -29,7 +29,7 @@ _start:
 
 if the following requirements are met:
 
-- the FPGA tools for the specific board installed and in the PATH
+- the FPGA tools for the Lattice board are installed
 - the board connected to the computer
 
 then the example can be build and run using the following commands within the `icebreaker_rotation` directory:
