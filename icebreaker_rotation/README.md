@@ -6,18 +6,18 @@ The purpose of this project is to demonstrate the use of the `icebreaker` board 
 %section code .romtext
   entry _start    ; Entry point
 _start:
-  rset	r0,1
-  r2o	r0,o0
+  rset  r0,1
+  r2o   r0,o0
   nop
-  rset	r0,4
-  r2o	r0,o0
+  rset  r0,4
+  r2o   r0,o0
   nop
-  rset	r0,2
-  r2o	r0,o0
+  rset  r0,2
+  r2o   r0,o0
   nop
-  rset	r0,8
-  r2o	r0,o0
-  j	_start
+  rset  r0,8
+  r2o   r0,o0
+  j _start
 
 %endsection
 
@@ -27,12 +27,20 @@ _start:
 %meta bmdef	global registersize:4
 ```
 
-if the following requirements are met:
+After cloning the repository:
 
-- the FPGA tools for the Lattice board are installed
+```bash
+git clone https://github.com/BondMachineHQ/bmexamples.git
+cd bmexamples/icebreaker_rotation
+```
+
+The code can be found in the file `rotate.basm` in the `icebreaker_rotation` directory alongside all the necessary files to build and run the example. In order to everything to work, there are a few requirements that need to be met:
+
+- the BondMachine tools are installed
+- the FPGA open source toolchain for the Lattice boards are installed
 - the board connected to the computer
 
-then the example can be build and run using the following commands within the `icebreaker_rotation` directory:
+The example can be build and run using the following commands within the `icebreaker_rotation` directory:
 
 ```bash
 make apply
