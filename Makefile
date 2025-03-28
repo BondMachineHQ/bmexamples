@@ -231,6 +231,22 @@ endif
 	SOURCE=$(SOURCE_MATRIXWORK)
 endif
 
+ifneq ($(SOURCE_BMMATRIX), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=bmmatrix  -expression `cat $(SOURCE_BMMATRIX)` $(BMMATRIXARGS) -save-basm $(WORKING_DIR)/bondmachine.basm $(BMINFO_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm
+	SOURCE=$(SOURCE_BMMATRIX)
+endif
+
+ifneq ($(SOURCE_FLEXPY), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=flexpy -e $(SOURCE_FLEXPY) -o $(WORKING_DIR)/bondmachine.basm $(FLEXPY_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(FLEXPY_LIB)/*.basm
+	SOURCE=$(SOURCE_FLEXPY)
+endif
+
 ifneq ($(SOURCE_NEURALBOND), )
 ifeq ($(MAINTARGET), cluster)
 $(error Unsupported)
@@ -698,6 +714,9 @@ deployrun: deploy | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine deployrun begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 ifeq ($(DEPLOY_TYPE),ssh)
 ifneq ($(DEPLOY_APP),)
+ifneq ($(DEPLOY_RUN_DATA),)
+	@bash -c 'for i in $(DEPLOY_RUN_DATA) ; do scp $(SSH_ARGS) $$i $(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)/$$i ; done'
+endif
 ifneq ($(DEPLOY_RUN_COMMAND),)
 	ssh $(SSH_ARGS) $(DEPLOY_USER)@$(DEPLOY_HOST) "cd $(DEPLOY_PATH) ; $(DEPLOY_RUN_COMMAND)"
 endif
@@ -723,7 +742,11 @@ ifneq ($(DEPLOY_COLLECT),)
 	@bash -c 'for i in $(DEPLOY_COLLECT) ; do echo $$i ; done'
 endif
 
-
+basm: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[BondMachine basm begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bm2basm -bondmachine-file $(WORKING_DIR)/bondmachine.json -basm-file $(WORKING_DIR)/bm2basm.basm
+	@echo -e "$(PJP)$(INFOC)[BondMachine basm end]$(DEFC)"
+	@echo
 
 show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
@@ -787,7 +810,7 @@ ifndef SIMBATCH_ITERACTIONS
 	$(error SIMBATCH_ITERACTIONS is undefined)
 endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	./simbatch.py -w $(WORKING_DIR) -i $(SIMBATCH_INPUT_DATASET) -o $(SIMBATCH_OUTPUT_DATASET) -s $(SIMBATCH_ITERACTIONS) $(SIMBATCH_ARGS) $(BMRANGES) $(SIMBATCH_DATATYPE)
+	simbatch -w $(WORKING_DIR) -i $(SIMBATCH_INPUT_DATASET) -o $(SIMBATCH_OUTPUT_DATASET) -s $(SIMBATCH_ITERACTIONS) $(SIMBATCH_ARGS) $(BMRANGES) $(SIMBATCH_DATATYPE)
 	@echo -e "$(PJP)$(INFOC)[BondMachine simbatch end]$(DEFC)"
 	@echo
 
