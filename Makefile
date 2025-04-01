@@ -1361,6 +1361,9 @@ clean:
 	rm -f a.out*
 	rm -f .config.old
 	rm -f generated.mk
+ifneq ($(EXTRACLEAN),)
+	rm -f $(EXTRACLEAN)
+endif
 	@echo -e "$(PJP)$(INFOC)[Cleanup end]$(DEFC)"
 	@echo
  
