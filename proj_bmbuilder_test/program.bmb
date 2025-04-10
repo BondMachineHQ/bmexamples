@@ -1,0 +1,12 @@
+%block code1 .sequential
+: basmfiles:/home/mirko/Projects/conproc/vivado_tools/proj_bmbuilder_test/test.basm
+	basm
+: basmfiles:/home/mirko/Projects/conproc/vivado_tools/proj_bmbuilder_test/test.basm
+	basm
+: maxpooltype: avg, disabledynamicalmatching: true
+	maxpool 2
+%endblock
+
+%meta bmdef global main:code1
+%meta bmdef global registersize:32
+%meta bmdef global datatype:float32

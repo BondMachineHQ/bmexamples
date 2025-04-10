@@ -1,0 +1,10 @@
+WORKING_DIR=working_dir
+CURRENT_DIR=$(shell pwd)
+SOURCE_BMBUILDER=program.bmb
+BOARD=zedboard
+MAPFILE=zedboard_maps.json
+SHOWARGS=-dot-detail 5
+SHOWRENDERER=dot -Txlib
+BMBUILDER_ARGS=-d
+#HDL_REGRESSION=bondmachine.sv
+#BM_REGRESSION=bondmachine.json

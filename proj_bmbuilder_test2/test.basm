@@ -1,0 +1,71 @@
+%fragment cp0fragment iomode:async
+%meta literal resin r2:r3
+%meta literal resout r4:r5
+	cpy r0,r2
+	cpy r1,r3
+	inc r0
+	cpy r4,r0
+	cpy r5,r0
+%endfragment
+
+%fragment cp1fragment iomode:async
+%meta literal resin r2:r3
+%meta literal resout r4:r5
+	cpy r0,r2
+	cpy r1,r3
+	inc r0
+	cpy r4,r0
+	cpy r5,r0
+%endfragment
+
+%fragment cp2fragment iomode:async
+%meta literal resin r2:r3
+%meta literal resout r4
+	rset r1,0
+	cpy r0,r2
+	addf r1,r0
+	cpy r0,r3
+	addf r1,r0
+	rset r0,2
+	divf r1,r0
+	cpy r4,r1
+%endfragment
+
+
+%meta bmdef global registersize:32
+%meta bmdef global iomode:async
+%meta fidef cp0fi fragment:cp0fragment
+%meta fidef cp1fi fragment:cp1fragment
+%meta fidef cp2fi fragment:cp2fragment
+
+%meta filinkdef bond0 type:fl
+%meta filinkatt bond0 fi:ext, type:output, index:0
+%meta filinkatt bond0 fi:cp2fi, type:output, index:0
+
+%meta filinkdef bond1 type:fl
+%meta filinkatt bond1 fi:cp0fi, type:input, index:0
+%meta filinkatt bond1 fi:ext, type:input, index:0
+
+%meta filinkdef bond2 type:fl
+%meta filinkatt bond2 fi:cp0fi, type:input, index:1
+%meta filinkatt bond2 fi:ext, type:input, index:1
+
+%meta filinkdef bond3 type:fl
+%meta filinkatt bond3 fi:cp1fi, type:input, index:0
+%meta filinkatt bond3 fi:cp0fi, type:output, index:0
+
+%meta filinkdef bond4 type:fl
+%meta filinkatt bond4 fi:cp1fi, type:input, index:1
+%meta filinkatt bond4 fi:cp0fi, type:output, index:1
+
+%meta filinkdef bond5 type:fl
+%meta filinkatt bond5 fi:cp2fi, type:input, index:0
+%meta filinkatt bond5 fi:cp1fi, type:output, index:0
+
+%meta filinkdef bond6 type:fl
+%meta filinkatt bond6 fi:cp2fi, type:input, index:1
+%meta filinkatt bond6 fi:cp1fi, type:output, index:1
+
+%meta cpdef cp0 fragcollapse:cp0fi
+%meta cpdef cp1 fragcollapse:cp1fi
+%meta cpdef cp2 fragcollapse:cp2fi
