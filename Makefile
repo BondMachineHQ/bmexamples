@@ -1172,7 +1172,12 @@ ifeq ($(BOARD),zedboard)
 		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices xc7z020_1] $(PEER_ID)]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
 ifeq ($(BOARD),basys3)
-		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices] $(PEER_ID)]" >> $(WORKING_DIR)/vivado-script-program.tcl
+ifneq ($(DEVICE_ID), )
+		echo "open_hw_target $(DEVICE_ID)" >> $(WORKING_DIR)/vivado-script-program.tcl
+else
+		echo "open_hw_target [lindex [get_hw_targets] $(PEER_ID)]" >> $(WORKING_DIR)/vivado-script-program.tcl
+endif
+		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices] 0]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
 	cat $(ROOTDIR)/$(BOARD)_template_program_2.tcl | sed "s/--PEERID--/$(PEER_ID)/" >> $(WORKING_DIR)/vivado-script-program.tcl
 ifneq ($(BOARD_NUM),)
@@ -1450,6 +1455,10 @@ ifeq ($(CLUSTER_SOURCE),basm)
 	for i in `ls edgenode*bmeta` ; do cp -a $(SOURCE_BASM_FILTERED) working_dir/`basename $$i .bmeta` ; done
 # Append peer ids to local.mk files
 	for i in `ls edgenode*bmeta` ; do PEERID=`basename $$i .bmeta | sed 's/edgenode//'` ; echo "PEER_ID=$$PEERID" >> working_dir/`basename $$i .bmeta`/local.mk ; done
+ifneq ($(USE_BONDIRECT),)
+# Apply Bondirect configuration
+	for i in `ls edgenode*bmeta` ; do PEERID=`basename $$i .bmeta | sed 's/edgenode//'` ; bondirect -bondirect-mesh $(BONDIRECT_MESH) -cluster-spec $(CLUSTER_SPEC) -dump-metadata -node-id $$PEERID >> working_dir/`basename $$i .bmeta`/local.mk ; done
+endif
 # Move the metadata files to the corresponding working directories
 	for i in `ls edgenode*bmeta` ; do mv $$i working_dir/`basename $$i .bmeta`/edgenode.bmeta ; done
 	@echo -e "$(PJP)$(INFOC)[Cluster generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
