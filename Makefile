@@ -1424,8 +1424,8 @@ silent:
 
 #### Clustering
 
-.PHONY: clustergeneration
-clustergeneration:
+clustergeneration: $(WORKING_DIR)/clustergeneration_target
+$(WORKING_DIR)/clustergeneration_target: | $(WORKING_DIR) checkenv
 	$(CLUSTER_COMMAND)
 ifeq ($(CLUSTER_SOURCE),basm)
 	@echo -e "$(PJP)$(INFOC)[Cluster generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
@@ -1461,24 +1461,33 @@ ifneq ($(USE_BONDIRECT),)
 endif
 # Move the metadata files to the corresponding working directories
 	for i in `ls edgenode*bmeta` ; do mv $$i working_dir/`basename $$i .bmeta`/edgenode.bmeta ; done
+	@touch $(WORKING_DIR)/clustergeneration_target
 	@echo -e "$(PJP)$(INFOC)[Cluster generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 endif
 
-.PHONY: cluster
-cluster: clustergeneration
+cluster: $(WORKING_DIR)/cluster_target
+$(WORKING_DIR)/cluster_target: $(WORKING_DIR)/clustergeneration_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	for i in `ls -d working_dir/edgenode*` ; do make -C $$i apply ; done
 	for i in `ls -d working_dir/edgenode*` ; do make -C $$i ; done
+	@touch $(WORKING_DIR)/cluster_target
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
-.PHONY: clusterbitstream
-clusterbitstream: clustergeneration
+clusterbitstream: $(WORKING_DIR)/clusterbitstream_target
+$(WORKING_DIR)/clusterbitstream_target: $(WORKING_DIR)/cluster_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine bitstream generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	for i in `ls -d working_dir/edgenode*` ; do make -C $$i bitstream ; done
+	@touch $(WORKING_DIR)/clusterbitstream_target
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine bitstream generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
+.PHONY: clusterprogram
+clusterprogram: $(WORKING_DIR)/clusterbitstream_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i program ; done
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+
 .PHONY: showcluster
-showcluster: cluster
+showcluster: $(WORKING_DIR)/cluster_target
 	@echo -e "$(PJP)$(INFOC)[BondMachine cluster diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	bmcluster -clusterinfo-file clusterinfo.json -emit-dot $(SHOW_ARGS) | $(SHOW_RENDERER)
 	@echo -e "$(PJP)$(INFOC)[BondMachine cluster diagram show end]$(DEFC)"
