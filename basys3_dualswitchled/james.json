@@ -1,0 +1,131 @@
+{
+   "Transceivers": [
+      {
+         "Type": "bondirect",
+         "Name": "bsend",
+         "Signals": {
+            "clk": {
+               "Type": "clock",
+               "Name": "jb1"
+            },
+            "data0": {
+               "Type": "data",
+               "Name": "jb2"
+            }
+         },
+         "Data": {}
+      },
+      {
+         "Type": "bondirect",
+         "Name": "brecv",
+         "Signals": {
+            "clk": {
+               "Type": "clock",
+               "Name": "jb3"
+            },
+            "data0": {
+               "Type": "data",
+               "Name": "jb4"
+            }
+         },
+         "Data": {}
+      },
+      {
+         "Type": "bondirect",
+         "Name": "xarecv",
+         "Signals": {
+            "clk": {
+               "Type": "clock",
+               "Name": "jxa1"
+            },
+            "data0": {
+               "Type": "data",
+               "Name": "jxa2"
+            }
+         },
+         "Data": {}
+      },
+      {
+         "Type": "bondirect",
+         "Name": "xasend",
+         "Signals": {
+            "clk": {
+               "Type": "clock",
+               "Name": "jxa3"
+            },
+            "data0": {
+               "Type": "data",
+               "Name": "jxa4"
+            }
+         },
+         "Data": {}
+      }
+   ],
+   "Nodes": {
+      "peer0": {
+         "PeerId": 0,
+         "Data": { "DEVICE_ID": "localhost:3121/xilinx_tcf/Digilent/210183A8A23DA"}
+      },
+      "peer1": {
+         "PeerId": 1,
+         "Data": { "DEVICE_ID": "localhost:3121/xilinx_tcf/Digilent/210183A8A252A"}
+      },
+      "peer2": {
+         "PeerId": 2,
+         "Data": { "DEVICE_ID": "localhost:3121/xilinx_tcf/Digilent/210183A8A276A"}
+      },
+      "peer3": {
+         "PeerId": 3,
+         "Data": { "DEVICE_ID": "localhost:3121/xilinx_tcf/Digilent/210183A8A266A"}
+      }
+   },
+   "Edges": {
+      "wire0": {
+         "NodeA": "peer0",
+         "NodeB": "peer1",
+         "FromAtoB": {
+            "ATransceiver": "bsend",
+            "BTransceiver": "xarecv",
+            "Data": {}
+         },
+         "FromBtoA": {
+            "ATransceiver": "brecv",
+            "BTransceiver": "xasend",
+            "Data": {}
+         },
+         "Data": {
+	    "CountersLen": "32"
+	 }
+      },
+      "wire1": {
+         "NodeA": "peer1",
+         "NodeB": "peer2",
+         "FromAtoB": {
+            "ATransceiver": "bsend",
+            "BTransceiver": "xarecv",
+            "Data": {}
+         },
+         "FromBtoA": {
+            "ATransceiver": "brecv",
+            "BTransceiver": "xasend",
+            "Data": {}
+         },
+         "Data": {}
+      },
+      "wire2": {
+         "NodeA": "peer2",
+         "NodeB": "peer3",
+         "FromAtoB": {
+            "ATransceiver": "bsend",
+            "BTransceiver": "xarecv",
+            "Data": {}
+         },
+         "FromBtoA": {
+            "ATransceiver": "brecv",
+            "BTransceiver": "xasend",
+            "Data": {}
+         },
+         "Data": {}
+      }
+   }
+}

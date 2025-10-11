@@ -1,0 +1,7 @@
+%section code .romtext iomode:async
+        entry _start    ; Entry point
+_start:
+	mov r0,i0
+	mov o0,r0
+	j _start
+%endsection

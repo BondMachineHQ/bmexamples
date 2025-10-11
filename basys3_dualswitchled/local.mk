@@ -1,0 +1,11 @@
+WORKING_DIR=working_dir
+CURRENT_DIR=$(shell pwd)
+BOARD=basys3
+SHOWARGS=-dot-detail 5
+BASM_ARGS=-create-mapfile basys3_maps.json
+VERILOG_OPTIONS=-comment-verilog
+CLUSTER_SPEC=cluster.json
+USE_BONDIRECT=true
+BONDIRECT_MAPFILE=edgenode_maps.json
+BONDIRECT_MESH=james.json
+CLUSTER=true
