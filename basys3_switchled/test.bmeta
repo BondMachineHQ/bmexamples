@@ -1,0 +1,12 @@
+%meta cpdef	cpu1	romcode: code
+%meta cpdef	cpu2	romcode: code
+%meta bmdef	global  registersize:8, mapclk:clk, mapreset:btnC
+
+%meta ioatt	testio3 cp: bm, index:0, type:output, mapfrom:0, mapto:7, mapname: led1
+%meta ioatt	testio3 cp: cpu2, index:0, type:output
+
+%meta ioatt	testio2 cp: cpu1, index:0, type:output
+%meta ioatt	testio2 cp: cpu2, index:0, type:input
+
+%meta ioatt	testio1 cp: bm, index:0, type:input, mapfrom:0, mapto:7, mapname: sw
+%meta ioatt	testio1 cp: cpu1, index:0, type:input
