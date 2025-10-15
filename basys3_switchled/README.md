@@ -1,6 +1,6 @@
- # Basys3 Switch to LED Example
- 
- This example demonstrates how to use BondMachine to create a simple architecture that reads the state of a switch on the Basys3 FPGA board and outputs it to an LED. The example is designed for the Basys3 board, but can be adapted to other boards with minor modifications.
+# Basys3 Switch to LED Example
+
+This example demonstrates how to use BondMachine to create a simple architecture that reads the state of a switch on the Basys3 FPGA board and outputs it to an LED. The example is designed for the Basys3 board, but can be adapted to other boards with minor modifications.
 The architecture is generated from a BASM file that defines via meta-attributes 2 processors, one that reads the switch state, pass along the value, and another that writes to the LED. 
 
 The code of both processors is the same, it is contained in the `test.basm` file:
