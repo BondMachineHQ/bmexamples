@@ -435,10 +435,22 @@ else
 	BMAPI_ARGS=
 endif
 
+ifneq ($(COUNTER), )
+	COUNTER_ARGS=-counter -counter-map $(COUNTER_MAP) -counter-slow-factor $(COUNTER_SLOW_FACTOR)
+else
+	COUNTER_ARGS=
+endif
+
 ifneq ($(BASYS3_7SEG), )
 	BASYS3_7SEG_ARGS=-basys3-7segment -basys3-7segment-map $(BASYS3_7SEG_MAP)
 else
 	BASYS3_7SEG_ARGS=
+endif
+
+ifneq ($(BASYS3_LEDS), )
+	BASYS3_LEDS_ARGS=-basys3-leds -basys3-leds-map $(BASYS3_LEDS_MAP) -basys3-leds-name $(BASYS3_LEDS_NAME)
+else
+	BASYS3_LEDS_ARGS=
 endif
 
 ifneq ($(IB_LEDS), )
@@ -615,7 +627,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(IF_LEDS_ARGS) $(I4_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BONDIRECT_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(COUNTER_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(BASYS3_LEDS_ARGS) $(IB_LEDS_ARGS) $(IF_LEDS_ARGS) $(I4_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BONDIRECT_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
