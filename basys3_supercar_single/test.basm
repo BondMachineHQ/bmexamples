@@ -1,0 +1,30 @@
+%section kittsingle .romtext iomode:async
+        entry _start    ; Entry point
+_start:
+	rsets16 r3,1
+	rsets16 r4,0 ; direction - 0=left , otherwise=right
+wait:
+	rsets16 r0, 10000
+	rsets16 r1, 1000
+	call8s sleep
+	jz r4, goingl
+goingr:
+	cir r3
+	jz r3, setl
+	j print	
+setl:
+	rsets16 r4,0
+	rsets16 r3,1
+	j print
+goingl:
+	cil r3
+	jz r3, setr
+	j print
+setr:
+	rsets16 r4, 1
+	rsets16 r3, 32768
+	j print
+print:
+	mov o0, r3
+	j wait
+%endsection

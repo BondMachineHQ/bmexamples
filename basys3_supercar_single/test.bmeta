@@ -1,0 +1,5 @@
+%meta cpdef	cpu1	romcode: kittsingle
+%meta bmdef	global  registersize:16, mapclk:clk, mapreset:btnC
+
+%meta ioatt	testio3 cp: bm, index:0, type:output, mapfrom:0, mapto:15, mapname: led
+%meta ioatt	testio3 cp: cpu1, index:0, type:output
