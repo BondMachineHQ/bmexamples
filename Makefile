@@ -1465,6 +1465,9 @@ ifeq ($(CLUSTER_SOURCE),basm)
 	for i in `ls edgenode*bmeta` ; do ln -sf ../../Kconfig working_dir/`basename $$i .bmeta`/ ; done
 # Copy the BASM files without metadata to every edge directory
 	for i in `ls edgenode*bmeta` ; do cp -a $(SOURCE_BASM_FILTERED) working_dir/`basename $$i .bmeta` ; done
+ifneq ($(BASM_LIB),)
+	for i in `ls edgenode*bmeta` ; do ln -s ../../$(BASM_LIB) working_dir/`basename $$i .bmeta`/$(BASM_LIB) ; done
+endif
 # Append peer ids to local.mk files
 	for i in `ls edgenode*bmeta` ; do PEERID=`basename $$i .bmeta | sed 's/edgenode//'` ; echo "PEER_ID=$$PEERID" >> working_dir/`basename $$i .bmeta`/local.mk ; done
 ifneq ($(USE_BONDIRECT),)
