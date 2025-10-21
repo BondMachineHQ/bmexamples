@@ -1,0 +1,27 @@
+%meta cpdef	cpu1	romcode: kittleft
+%meta cpdef	cpu2	romcode: kittcentral, device:central, devid:1
+%meta cpdef	cpu3	romcode: kittright, device:right, devid:2
+
+%meta bmdef	global  registersize:16, mapclk:clk, mapreset:btnC
+
+%meta ioatt	testio1 cp: bm, index:0, type:output, mapfrom:0, mapto:15, mapname: led
+%meta ioatt	testio1 cp: cpu1, index:0, type:output
+
+%meta ioatt	testio2 cp: bm, index:1, type:output, mapfrom:0, mapto:15, mapname: led
+%meta ioatt	testio2 cp: cpu2, index:0, type:output
+
+%meta ioatt	testio3 cp: bm, index:2, type:output, mapfrom:0, mapto:15, mapname: led
+%meta ioatt	testio3 cp: cpu3, index:0, type:output
+
+%meta ioatt	testio4	cp:cpu1, index:1, type:output
+%meta ioatt	testio4	cp:cpu2, index:0, type:input
+
+%meta ioatt	testio5	cp:cpu2, index:1, type:output
+%meta ioatt	testio5	cp:cpu1, index:0, type:input
+
+%meta ioatt	testio6	cp:cpu2, index:2, type:output
+%meta ioatt	testio6	cp:cpu3, index:0, type:input
+
+%meta ioatt	testio7	cp:cpu3, index:1, type:output
+%meta ioatt	testio7	cp:cpu2, index:1, type:input
+

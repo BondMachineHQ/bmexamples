@@ -1,0 +1,109 @@
+%section kittleft .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	rsets16 r3,1
+	rsets16 r4,0 ; direction - 0=left , otherwise=right
+wait:
+	rsets16 r0, 1000
+	rsets16 r1, 1000
+	call8s sleep
+	jz r4, goingl
+goingr:
+	cir r3
+	jz r3, setl
+	j print	
+setl:
+	r2o r3, o0
+	mov o1, r4
+	mov r4, i0
+	rsets16 r4,0
+	rsets16 r3,1
+	j print
+goingl:
+	cil r3
+	jz r3, setr
+	j print
+setr:
+	rsets16 r4, 1
+	rsets16 r3, 32768
+	j print
+print:
+	r2o r3, o0
+	j wait
+%endsection
+
+
+
+%section kittright .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	mov r4,i0
+	rsets16 r3,32768
+	rsets16 r4,1 ; direction - 0=left , otherwise=right
+wait:
+	rsets16 r0, 1000
+	rsets16 r1, 1000
+	call8s sleep
+	jz r4, goingl
+goingr:
+	cir r3
+	jz r3, setl
+	j print	
+setl:
+	rsets16 r4,0
+	rsets16 r3,1
+	j print
+goingl:
+	cil r3
+	jz r3, setr
+	j print
+setr:
+	r2o r3, o0
+	mov o1, r4
+	mov r4,i0
+	rsets16 r4, 1
+	rsets16 r3, 32768
+	j print
+print:
+	r2o r3, o0
+	j wait
+%endsection
+
+
+%section kittcentral .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	mov r4,i0
+	rsets16 r3,32768
+	rsets16 r4,1 ; direction - 0=left , otherwise=right
+wait:
+	rsets16 r0, 1000
+	rsets16 r1, 1000
+	call8s sleep
+	jz r4, goingl
+goingr:
+	cir r3
+	jz r3, setl
+	j print	
+setl:
+	r2o r3, o0
+	mov o2, r4
+	mov r4, i1
+	rsets16 r4,0
+	rsets16 r3,1
+	j print
+goingl:
+	cil r3
+	jz r3, setr
+	j print
+setr:
+	r2o r3, o0
+	mov o1, r4
+	mov r4,i0
+	rsets16 r4, 1
+	rsets16 r3, 32768
+	j print
+print:
+	r2o r3, o0
+	j wait
+%endsection
