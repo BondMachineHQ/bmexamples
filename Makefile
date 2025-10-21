@@ -116,6 +116,7 @@ ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == 
 	IMPLEMENTATION_TARGET=$(WORKING_DIR)/vivado_implementation
 	BITSTREAM_TARGET=$(WORKING_DIR)/vivado_bitstream
 	PROGRAM_TARGET=$(WORKING_DIR)/vivado_program
+	FAST_PROGRAM_TARGET=$(WORKING_DIR)/vivado_fast_program
 	ACCELERATOR_TARGET=$(WORKING_DIR)/vivado_accelerator
 	DESIGN_TARGET=$(WORKING_DIR)/vivado_design_creation
 	DESIGN_SYNTHESIS_TARGET=$(WORKING_DIR)/vivado_design_synthesis
@@ -584,6 +585,9 @@ hdl_simulation: $(WORKING_DIR)/hdl_simulation_target | $(WORKING_DIR) checkenv
 
 .PHONY: program
 program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
+
+.PHONY: fast_program
+fast_program: $(FAST_PROGRAM_TARGET) | $(WORKING_DIR) checkenv
 
 ##### Kconfig based confifuration
 .PHONY: menuconfig
@@ -1200,6 +1204,16 @@ endif
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - programming end]$(DEFC)"
 	@echo
 
+.PHONY: $(WORKING_DIR)/vivado_fast_program
+$(WORKING_DIR)/vivado_fast_program: $(WORKING_DIR)/vivado_bitstream | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - fast programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bash -c "cd $(WORKING_DIR) ; openFPGALoader -c $(CABLE) -d $(BY_SERIAL) bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit"
+	@touch $(WORKING_DIR)/vivado_fast_program
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - fast programming end]$(DEFC)"
+	@echo
+
+
+
 $(WORKING_DIR)/vivado_accelerator:  $(WORKING_DIR)/hdl_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - IP accelerator creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 ifeq ($(BMAPI_FLAVOR),)
@@ -1500,6 +1514,12 @@ clusterprogram: $(WORKING_DIR)/clusterbitstream_target
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	for i in `ls -d working_dir/edgenode*` ; do make -C $$i program ; done
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+
+.PHONY: clusterfastprogram
+clusterfastprogram: $(WORKING_DIR)/clusterbitstream_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine fast programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i fast_program ; done
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine fast programming end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
 .PHONY: showcluster
 showcluster: $(WORKING_DIR)/cluster_target
