@@ -245,10 +245,20 @@ endif
 
 ifneq ($(SOURCE_FLEXPY), )
 ifeq ($(MAINTARGET), cluster)
-$(error Unsupported)
+	CLUSTER_COMMAND=flexpy -e $(SOURCE_FLEXPY) -o bondmachine.bmeta $(FLEXPY_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -oprefix edgenode -co cluster.json $(BASM_LIB_FILES) $(FLEXPY_LIB)/*.basm $(WORKING_DIR)/bondmachine.bmeta
+	SOURCE_BASM_FILTERED=$(shell for i in $(SOURCE_BASM) ; do echo -n $$i | grep -v ".bmeta" ; done)
+	CLUSTER_SOURCE=basm
 endif
 	SOURCE_COMMAND=flexpy -e $(SOURCE_FLEXPY) -o $(WORKING_DIR)/bondmachine.basm $(FLEXPY_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(FLEXPY_LIB)/*.basm
 	SOURCE=$(SOURCE_FLEXPY)
+endif
+
+ifneq ($(SOURCE_FRAGTESTER), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=fragtester -neuron-lib-path $(FRAGTESTER_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(FRAGTESTER_ARGS) -fragment-file $(SOURCE_FRAGTESTER) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(FRAGTESTER_LIBRARY)/*.basm
+	SOURCE=$(FRAGTESTER_LIBRARY)/$(SOURCE_FRAGTESTER)
 endif
 
 ifneq ($(SOURCE_NEURALBOND), )
@@ -301,6 +311,15 @@ endif
 	SOURCE=$(SOURCE_MELBOND)
 endif
 
+##### Benchmark core v2 attachment
+
+ifneq ($(BENCHCOREV2_FILE), )
+	SOURCE_COMMAND+= ; bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -attach-benchmark-core-v2 `cat $(BENCHCOREV2_FILE)`
+else
+ifneq ($(BENCHCOREV2), )
+	SOURCE_COMMAND+= ; bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -attach-benchmark-core-v2-file $(BENCHCOREV2)
+endif
+endif
 
 ##### Arguments processing
 
@@ -825,6 +844,12 @@ endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simulation end]$(DEFC)"
 	@echo
 
+.PHONY: simrules
+simrules:
+ifndef SIMBOX_FILE
+	$(error SIMBOX_FILE is undefined)
+endif
+	@simbox -simbox-file $(SIMBOX_FILE) -list
 
 simbatch: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 ifndef SIMBATCH_INPUT_DATASET
