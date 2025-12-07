@@ -1,0 +1,61 @@
+{
+	"Pops": [
+		{
+			"Agent": "receiver1",
+			"Tick": 110
+		},
+		{
+			"Agent": "receiver2",
+			"Tick": 160
+		},
+		{
+			"Agent": "receiver1",
+			"Tick": 210
+		},
+		{
+			"Agent": "receiver2",
+			"Tick": 260
+		},
+		{
+			"Agent": "receiver1",
+			"Tick": 310
+		},
+		{
+			"Agent": "receiver2",
+			"Tick": 360
+		}
+	],
+	"Pushes": [
+		{
+			"Agent": "sender1",
+			"Tick": 100,
+			"Value": "32'd1"
+		},
+		{
+			"Agent": "sender2",
+			"Tick": 150,
+			"Value": "32'd2"
+		},
+		{
+			"Agent": "sender3",
+			"Tick": 200,
+			"Value": "32'd3"
+		},
+		{
+			"Agent": "sender1",
+			"Tick": 250,
+			"Value": "32'd4"
+		},
+		{
+			"Agent": "sender2",
+			"Tick": 300,
+			"Value": "32'd5"
+		},
+		{
+			"Agent": "sender3",
+			"Tick": 350,
+			"Value": "32'd6"
+		}
+	],
+	"TestSequence": null
+}
