@@ -1,0 +1,11 @@
+DEPLOY_TYPE=ssh
+DEPLOY_HOST=zedbm
+DEPLOY_USER=root
+DEPLOY_GROUP=root
+DEPLOY_OVERRIDE=true
+DEPLOY_PATH=flexpy/$(PROJECT_NAME)
+DEPLOY_APP=expression.c
+DEPLOY_RUN_COMMAND=gcc expression.c  -l pynq -lcma -lpthread -o expression ; ./expression inputs.seq bmsim_outputs.seq
+DEPLOY_RUN_DATA=inputs.seq
+DEPLOY_COLLECT=bmsim_outputs.seq
+SSH_ARGS=-i /home/mirko/.ssh/structural
