@@ -1,0 +1,1 @@
+{"ClusterId":0,"Peers":[{"PeerId":0,"PeerName":"default","Channels":[],"Inputs":[1],"Outputs":[0]},{"PeerId":1,"PeerName":"central","Channels":[],"Inputs":[0,3],"Outputs":[1,2]},{"PeerId":2,"PeerName":"right","Channels":[],"Inputs":[2],"Outputs":[3]}]}

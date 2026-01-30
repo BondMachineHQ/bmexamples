@@ -1,0 +1,9 @@
+USE_BMAPI=yes
+BMAPI_LANGUAGE=go
+BMAPI_FLAVOR=aximm
+BMAPI_MAPFILE=bmapi.json
+BMAPI_LIBOUTDIR=working_dir/bmapi
+BMAPI_MODOUTDIR=working_dir/module
+BMAPI_AUXOUTDIR=working_dir/aux
+BMAPI_GOAPP=sumapp.go
+BMAPI_GOMOD=git.fisica.unipg.it/sumapp.git

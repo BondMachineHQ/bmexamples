@@ -1,0 +1,28 @@
+%section test .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	mov r0, i0
+	mov o0, r0
+	j _start
+%endsection
+
+%section bench .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	sicv3 r0, i0
+	sicv3 r0, i1
+	mov o0, r0
+	j _start
+%endsection
+
+%meta cpdef	cpu1	romcode: test
+%meta cpdef	cpu2	romcode: bench
+%meta bmdef	global  registersize:32
+%meta ioatt	testio1 cp: bm, index:0, type:input
+%meta ioatt	testio1 cp: cpu1, index:0, type:input
+%meta ioatt	testio2 cp: bm, index:0, type:input
+%meta ioatt	testio2 cp: cpu2, index:0, type:input
+%meta ioatt	testio4 cp: cpu1, index:0, type:output
+%meta ioatt	testio4 cp: cpu2, index:1, type:input
+%meta ioatt	testio5 cp: cpu2, index:0, type:output
+%meta ioatt	testio5 cp: bm, index:0, type:output

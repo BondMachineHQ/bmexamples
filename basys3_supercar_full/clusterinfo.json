@@ -1,0 +1,18 @@
+{
+  "ClusterFile": "cluster.json",
+  "BMIds": [
+    0,
+    1,
+    2
+  ],
+  "BMFiles": [
+    "working_dir/edgenode0/working_dir/bondmachine.json",
+    "working_dir/edgenode1/working_dir/bondmachine.json",
+    "working_dir/edgenode2/working_dir/bondmachine.json"
+  ],
+  "BMMaps": [
+    "working_dir/edgenode0/edgenode_maps.json",
+    "working_dir/edgenode1/edgenode_maps.json",
+    "working_dir/edgenode2/edgenode_maps.json"
+  ]
+}

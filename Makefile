@@ -86,7 +86,7 @@ endif
 
 ##### Cluster or single target selection
 
-ifneq ($(CLUSTER), )
+ifeq ($(CLUSTER),true)
 	MAINTARGET=cluster
 else
 ifneq ($(SOURCE_MULTI), )
@@ -116,6 +116,7 @@ ifeq ($(shell [[ $(BOARD) == "basys3" || $(BOARD) == "zedboard"  || $(BOARD) == 
 	IMPLEMENTATION_TARGET=$(WORKING_DIR)/vivado_implementation
 	BITSTREAM_TARGET=$(WORKING_DIR)/vivado_bitstream
 	PROGRAM_TARGET=$(WORKING_DIR)/vivado_program
+	FAST_PROGRAM_TARGET=$(WORKING_DIR)/vivado_fast_program
 	ACCELERATOR_TARGET=$(WORKING_DIR)/vivado_accelerator
 	DESIGN_TARGET=$(WORKING_DIR)/vivado_design_creation
 	DESIGN_SYNTHESIS_TARGET=$(WORKING_DIR)/vivado_design_synthesis
@@ -166,8 +167,11 @@ endif
 ##### Source selection
 
 ifneq ($(SOURCE_BASM), )
+#Create a filtered list of basm files removing the ine ending with .bmeta
+	SOURCE_BASM_FILTERED=$(shell for i in $(SOURCE_BASM) ; do echo -n $$i | grep -v ".bmeta" ; done)
 ifeq ($(MAINTARGET), cluster)
-$(error Unsupported)
+	CLUSTER_COMMAND=basm $(BASM_ARGS) $(BMINFO_ARGS) -oprefix edgenode -co cluster.json $(BASM_LIB_FILES) $(SOURCE_BASM)
+	CLUSTER_SOURCE=basm
 endif
 	SOURCE_COMMAND=basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(BASM_LIB_FILES) $(SOURCE_BASM)
 	SOURCE=$(SOURCE_BASM)
@@ -241,10 +245,20 @@ endif
 
 ifneq ($(SOURCE_FLEXPY), )
 ifeq ($(MAINTARGET), cluster)
-$(error Unsupported)
+	CLUSTER_COMMAND=flexpy -e $(SOURCE_FLEXPY) -o bondmachine.bmeta $(FLEXPY_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -oprefix edgenode -co cluster.json $(BASM_LIB_FILES) $(FLEXPY_LIB)/*.basm $(WORKING_DIR)/bondmachine.bmeta
+	SOURCE_BASM_FILTERED=$(shell for i in $(SOURCE_BASM) ; do echo -n $$i | grep -v ".bmeta" ; done)
+	CLUSTER_SOURCE=basm
 endif
 	SOURCE_COMMAND=flexpy -e $(SOURCE_FLEXPY) -o $(WORKING_DIR)/bondmachine.basm $(FLEXPY_ARGS) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(FLEXPY_LIB)/*.basm
 	SOURCE=$(SOURCE_FLEXPY)
+endif
+
+ifneq ($(SOURCE_FRAGTESTER), )
+ifeq ($(MAINTARGET), cluster)
+$(error Unsupported)
+endif
+	SOURCE_COMMAND=fragtester -neuron-lib-path $(FRAGTESTER_LIBRARY) -save-basm $(WORKING_DIR)/bondmachine.basm $(FRAGTESTER_ARGS) -fragment-file $(SOURCE_FRAGTESTER) ; basm $(BASM_ARGS) $(BMINFO_ARGS) -o $(WORKING_DIR)/bondmachine.json $(WORKING_DIR)/bondmachine.basm $(FRAGTESTER_LIBRARY)/*.basm
+	SOURCE=$(FRAGTESTER_LIBRARY)/$(SOURCE_FRAGTESTER)
 endif
 
 ifneq ($(SOURCE_NEURALBOND), )
@@ -297,8 +311,21 @@ endif
 	SOURCE=$(SOURCE_MELBOND)
 endif
 
+##### Benchmark core v2 attachment
+
+ifneq ($(BENCHCOREV2_FILE), )
+	SOURCE_COMMAND+= ; bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -attach-benchmark-core-v2 `cat $(BENCHCOREV2_FILE)`
+else
+ifneq ($(BENCHCOREV2), )
+	SOURCE_COMMAND+= ; bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -attach-benchmark-core-v2-file $(BENCHCOREV2)
+endif
+endif
 
 ##### Arguments processing
+
+ifeq ($(PEER_ID), )
+	PEER_ID=0
+endif
 
 ifneq ($(BOARD_SLOW), )
 	SLOW_ARGS=-board-slow -board-slow-factor $(BOARD_SLOW_FACTOR)
@@ -376,6 +403,12 @@ else
 	UDPBOND_ARGS=
 endif
 
+ifneq ($(USE_BONDIRECT), )
+	BONDIRECT_ARGS=-use-bondirect -cluster-spec $(CLUSTER_SPEC) -peer-id $(PEER_ID) -bondirect-mapfile $(BONDIRECT_MAPFILE) -bondirect-mesh $(BONDIRECT_MESH)
+else
+	BONDIRECT_ARGS=
+endif
+
 ## BMAPI SUB ARGS PROCESSING
 
 ifneq ($(BMAPI_DATATYPE), )
@@ -422,10 +455,22 @@ else
 	BMAPI_ARGS=
 endif
 
+ifneq ($(COUNTER), )
+	COUNTER_ARGS=-counter -counter-map $(COUNTER_MAP) -counter-slow-factor $(COUNTER_SLOW_FACTOR)
+else
+	COUNTER_ARGS=
+endif
+
 ifneq ($(BASYS3_7SEG), )
 	BASYS3_7SEG_ARGS=-basys3-7segment -basys3-7segment-map $(BASYS3_7SEG_MAP)
 else
 	BASYS3_7SEG_ARGS=
+endif
+
+ifneq ($(BASYS3_LEDS), )
+	BASYS3_LEDS_ARGS=-basys3-leds -basys3-leds-map $(BASYS3_LEDS_MAP) -basys3-leds-name $(BASYS3_LEDS_NAME)
+else
+	BASYS3_LEDS_ARGS=
 endif
 
 ifneq ($(IB_LEDS), )
@@ -481,12 +526,6 @@ ifneq ($(USE_UDPBOND), )
 	UDPBOND_ARGS=-use-udpbond $(UDPBOND_NETCONFIG_ARGS) $(UDPBOND_IPFILE_ARGS)
 else
 	UDPBOND_ARGS=
-endif
-
-ifneq ($(USE_BONDIRECT), )
-	BONDIRECT_ARGS=-use-bondirect
-else
-	BONDIRECT_ARGS=
 endif
 
 ##### Rootdir
@@ -566,6 +605,9 @@ hdl_simulation: $(WORKING_DIR)/hdl_simulation_target | $(WORKING_DIR) checkenv
 .PHONY: program
 program: $(PROGRAM_TARGET) | $(WORKING_DIR) checkenv
 
+.PHONY: fast_program
+fast_program: $(FAST_PROGRAM_TARGET) | $(WORKING_DIR) checkenv
+
 ##### Kconfig based confifuration
 .PHONY: menuconfig
 menuconfig:
@@ -608,7 +650,7 @@ $(WORKING_DIR)/bondmachine_target: $(SOURCE) | $(WORKING_DIR) checkenv
 
 $(WORKING_DIR)/hdl_target:  $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[HDL generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
-	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(IB_LEDS_ARGS) $(IF_LEDS_ARGS) $(I4_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
+	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -create-verilog -verilog-mapfile $(MAPFILE) -verilog-flavor $(BOARD) $(BM_ARGS) $(BENCHCORE_ARGS) $(COUNTER_ARGS) $(SLOW_ARGS) $(BASYS3_7SEG_ARGS) $(BASYS3_LEDS_ARGS) $(IB_LEDS_ARGS) $(IF_LEDS_ARGS) $(I4_LEDS_ARGS) $(PS2IOKBD_ARGS) $(VGATEXT_ARGS) $(ETHERBOND_ARGS) $(UDPBOND_ARGS) $(BONDIRECT_ARGS) $(BMAPI_ARGS) $(VERILOG_OPTIONS) $(BMINFO_ARGS) $(BMREQS_ARGS) $(BMOPT_ARGS) $(BMRANGES)
 	echo > $(WORKING_DIR)/bondmachine.sv
 	for i in `ls *.v | sort -d` ; do cat $$i >> $(WORKING_DIR)/bondmachine.sv ; done
 	rm -f *.v
@@ -749,9 +791,13 @@ basm: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 	@echo
 
 show: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
+ifeq ($(CLUSTER),true)
+	@make showcluster
+else
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	bondmachine -bondmachine-file $(WORKING_DIR)/bondmachine.json -emit-dot $(SHOW_ARGS) $(BMINFO_ARGS) | $(SHOW_RENDERER)
 	@echo -e "$(PJP)$(INFOC)[BondMachine diagram show end]$(DEFC)"
+endif
 	@echo
 
 specs: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
@@ -798,6 +844,12 @@ endif
 	@echo -e "$(PJP)$(INFOC)[BondMachine simulation end]$(DEFC)"
 	@echo
 
+.PHONY: simrules
+simrules:
+ifndef SIMBOX_FILE
+	$(error SIMBOX_FILE is undefined)
+endif
+	@simbox -simbox-file $(SIMBOX_FILE) -list
 
 simbatch: $(WORKING_DIR)/bondmachine_target | $(WORKING_DIR) checkenv
 ifndef SIMBATCH_INPUT_DATASET
@@ -1156,14 +1208,19 @@ $(WORKING_DIR)/vivado_bitstream: $(WORKING_DIR)/vivado_implementation | $(WORKIN
 $(WORKING_DIR)/vivado_program: $(WORKING_DIR)/vivado_bitstream | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 	echo "open_project \"$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.xpr\"" > $(WORKING_DIR)/vivado-script-program.tcl
-	cat $(ROOTDIR)/$(BOARD)_template_program_1.tcl >> $(WORKING_DIR)/vivado-script-program.tcl
+	cat $(ROOTDIR)/$(BOARD)_template_program_1.tcl | sed "s/--PEERID--/$(PEER_ID)/" >> $(WORKING_DIR)/vivado-script-program.tcl
 ifeq ($(BOARD),zedboard)
-		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices xc7z020_1] 0]" >> $(WORKING_DIR)/vivado-script-program.tcl
+		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices xc7z020_1] $(PEER_ID)]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
 ifeq ($(BOARD),basys3)
+ifneq ($(DEVICE_ID), )
+		echo "open_hw_target $(DEVICE_ID)" >> $(WORKING_DIR)/vivado-script-program.tcl
+else
+		echo "open_hw_target [lindex [get_hw_targets] $(PEER_ID)]" >> $(WORKING_DIR)/vivado-script-program.tcl
+endif
 		echo "set_property PROGRAM.FILE {$(CURRENT_DIR)/$(WORKING_DIR)/bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit} [lindex [get_hw_devices] 0]" >> $(WORKING_DIR)/vivado-script-program.tcl
 endif
-	cat $(ROOTDIR)/$(BOARD)_template_program_2.tcl >> $(WORKING_DIR)/vivado-script-program.tcl
+	cat $(ROOTDIR)/$(BOARD)_template_program_2.tcl | sed "s/--PEERID--/$(PEER_ID)/" >> $(WORKING_DIR)/vivado-script-program.tcl
 ifneq ($(BOARD_NUM),)
 	sed -i -e "s/\] 0\]/\] $(BOARD_NUM)\]/g" $(WORKING_DIR)/vivado-script-program.tcl
 endif
@@ -1171,6 +1228,16 @@ endif
 	@touch $(WORKING_DIR)/vivado_program
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - programming end]$(DEFC)"
 	@echo
+
+.PHONY: $(WORKING_DIR)/vivado_fast_program
+$(WORKING_DIR)/vivado_fast_program: $(WORKING_DIR)/vivado_bitstream | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - fast programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bash -c "cd $(WORKING_DIR) ; openFPGALoader -c $(CABLE) -d $(BY_SERIAL) bondmachine/bondmachine.runs/impl_1/bondmachine_main.bit"
+	@touch $(WORKING_DIR)/vivado_fast_program
+	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - fast programming end]$(DEFC)"
+	@echo
+
+
 
 $(WORKING_DIR)/vivado_accelerator:  $(WORKING_DIR)/hdl_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Vivado toolchain - IP accelerator creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
@@ -1408,65 +1475,91 @@ silent:
 
 #### Clustering
 
-.PHONY: cluster
-cluster: $(SOURCE)
-	$(SOURCE_COMMAND)
+clustergeneration: $(WORKING_DIR)/clustergeneration_target
+$(WORKING_DIR)/clustergeneration_target: | $(WORKING_DIR) checkenv
+	$(CLUSTER_COMMAND)
+ifeq ($(CLUSTER_SOURCE),basm)
+	@echo -e "$(PJP)$(INFOC)[Cluster generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+# Create the clusterinfo.json file
+	echo '{"ClusterFile":"cluster.json", "BMIds": [], "BMFiles": [], "BMMaps": []}' | jq '.' > clusterinfo.json
+# Populate the clusterinfo.json file with the edges informations
+	c=0 ; for i in `ls edgenode*bmeta` ; do jq ".BMIds[$$c] |= $$c" clusterinfo.json | jq ".BMFiles[$$c] |= \"working_dir/`basename $$i .bmeta`/working_dir/bondmachine.json\""| jq ".BMMaps[$$c] |= \"working_dir/`basename $$i .bmeta`/edgenode_maps.json\"" > clusterinfo.json.tmp && mv clusterinfo.json.tmp clusterinfo.json ; let c+=1 ; done
+# Create the working directories and copy the necessary files
+	for i in `ls edgenode*bmeta` ; do mkdir -p working_dir/`basename $$i .bmeta` ; done
+# Move the maps files to the corresponding working directories
+	for i in `ls edgenode*_maps.json` ; do mv $$i working_dir/`basename $$i _maps.json`/edgenode_maps.json ; done
+# Copy all the other files to each working directory
+	for i in `ls edgenode*bmeta` ; do cp -a *.json working_dir/`basename $$i .bmeta`/ ; done
+	for i in `ls edgenode*bmeta` ; do cp -a *.xdc working_dir/`basename $$i .bmeta`/ ; done
+	for i in `ls edgenode*bmeta` ; do cp -a *.mk working_dir/`basename $$i .bmeta`/ ; done
+	for i in `ls edgenode*bmeta` ; do test -f .config && cp -a .config working_dir/`basename $$i .bmeta`/ ; done
+# Patch config files
+	for i in `ls edgenode*bmeta` ; do test -f working_dir/`basename $$i .bmeta`/.config && sed -i 's/CONFIG_SOURCE_BASM=.*/CONFIG_SOURCE_BASM="$(SOURCE_BASM_FILTERED) edgenode.bmeta"/' working_dir/`basename $$i .bmeta`/.config ; done
+	for i in `ls edgenode*bmeta` ; do test -f working_dir/`basename $$i .bmeta`/local.mk && sed -i 's/CONFIG_SOURCE_BASM=.*/CONFIG_SOURCE_BASM="$(SOURCE_BASM_FILTERED) edgenode.bmeta"/' working_dir/`basename $$i .bmeta`/local.mk ; done
+	for i in `ls edgenode*bmeta` ; do test -f working_dir/`basename $$i .bmeta`/.config && sed -i 's/CLUSTER=.*/CLUSTER=false/' working_dir/`basename $$i .bmeta`/.config ; done
+	for i in `ls edgenode*bmeta` ; do test -f working_dir/`basename $$i .bmeta`/local.mk && sed -i 's/CLUSTER=.*/CLUSTER=false/' working_dir/`basename $$i .bmeta`/local.mk ; done
+# Link makefiles
+	for i in `ls edgenode*bmeta` ; do ln -sf ../../Makefile working_dir/`basename $$i .bmeta`/ ; done
+	for i in `ls edgenode*bmeta` ; do ln -sf ../../Makevideo working_dir/`basename $$i .bmeta`/ ; done
+	for i in `ls edgenode*bmeta` ; do ln -sf ../../Kconfig working_dir/`basename $$i .bmeta`/ ; done
+# Copy the BASM files without metadata to every edge directory
+	for i in `ls edgenode*bmeta` ; do cp -a $(SOURCE_BASM_FILTERED) working_dir/`basename $$i .bmeta` ; done
+ifneq ($(BASM_LIB),)
+	for i in `ls edgenode*bmeta` ; do ln -s ../../$(BASM_LIB) working_dir/`basename $$i .bmeta`/$(BASM_LIB) ; done
+endif
+# Append peer ids to local.mk files
+	for i in `ls edgenode*bmeta` ; do PEERID=`basename $$i .bmeta | sed 's/edgenode//'` ; echo "PEER_ID=$$PEERID" >> working_dir/`basename $$i .bmeta`/local.mk ; done
+ifneq ($(USE_BONDIRECT),)
+# Apply Bondirect configuration
+	for i in `ls edgenode*bmeta` ; do PEERID=`basename $$i .bmeta | sed 's/edgenode//'` ; bondirect -bondirect-mesh $(BONDIRECT_MESH) -cluster-spec $(CLUSTER_SPEC) -dump-metadata -node-id $$PEERID >> working_dir/`basename $$i .bmeta`/local.mk ; done
+endif
+# Move the metadata files to the corresponding working directories
+	for i in `ls edgenode*bmeta` ; do mv $$i working_dir/`basename $$i .bmeta`/edgenode.bmeta ; done
+	@touch $(WORKING_DIR)/clustergeneration_target
+	@echo -e "$(PJP)$(INFOC)[Cluster generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+endif
 
+cluster: $(WORKING_DIR)/cluster_target
+$(WORKING_DIR)/cluster_target: $(WORKING_DIR)/clustergeneration_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i apply ; done
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i ; done
+	@touch $(WORKING_DIR)/cluster_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
+clusterbitstream: $(WORKING_DIR)/clusterbitstream_target
+$(WORKING_DIR)/clusterbitstream_target: $(WORKING_DIR)/cluster_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine bitstream generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i bitstream ; done
+	@touch $(WORKING_DIR)/clusterbitstream_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine bitstream generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
+.PHONY: clusterprogram
+clusterprogram: $(WORKING_DIR)/clusterbitstream_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i program ; done
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine programming end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
+.PHONY: clusterfastprogram
+clusterfastprogram: $(WORKING_DIR)/clusterbitstream_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine fast programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i fast_program ; done
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine fast programming end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
-######3 OLD Cluster makefile
+.PHONY: showcluster
+showcluster: $(WORKING_DIR)/cluster_target
+	@echo -e "$(PJP)$(INFOC)[BondMachine cluster diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bmcluster -clusterinfo-file clusterinfo.json -emit-dot $(SHOW_ARGS) | $(SHOW_RENDERER)
+	@echo -e "$(PJP)$(INFOC)[BondMachine cluster diagram show end]$(DEFC)"
 
-# 
-# 
- 
+.PHONY: showmesh
+showmesh:
+	@echo -e "$(PJP)$(INFOC)[BondMachine mesh diagram show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bondirect -bondirect-mesh $(BONDIRECT_MESH) -cluster-spec $(CLUSTER_SPEC) -emit-mesh-dot | $(SHOW_RENDERER)
+	@echo -e "$(PJP)$(INFOC)[BondMachine mesh diagram show end]$(DEFC)"
 
-# .PHONY: all
-# all: clean dirsudpbond
-# 
-
-# .PHONY: dirsetherbond
-# dirsetherbond: bondmachines
-# 	for i in `ls ebcluster*bm.json` ; do mkdir `basename $$i _bm.json` ; cp -a `basename $$i _bm.json`_* `basename $$i _bm.json` ; cp ebcluster.json `basename $$i _bm.json` ; ln -s ../../Makefile `basename $$i _bm.json`/Makefile ; done
-# 	for i in `ls ebcluster*bm.json` ; do mkdir `basename $$i _bm.json`/working_dir ; done
-# 	for i in `ls ebcluster*bm.json` ; do cp basys3.xdc `basename $$i _bm.json`/ ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo 'WORKING_DIR=working_dir' > `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo 'CURRENT_DIR=$$(shell pwd)' >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "SOURCE_JSON=$$i" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "BOARD=$(BOARD)" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do PEER=`echo $$i | sed 's/\_bm\.json//' | sed 's/ebcluster\_//'` ; cat $(MAPFILE) | json $$PEER > `basename $$i _bm.json`/`basename $$i _bm.json`_residual.json ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "MAPFILE=`basename $$i _bm.json`_residual.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "ROOTDIR=../.." >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "USE_ETHERBOND=yes" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "CLUSTER_SPEC=ebcluster.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do PEER=`echo $$i | sed 's/\_bm\.json//' | sed 's/ebcluster\_peer\_//'` ;  echo "PEER_ID=$$PEER" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "ETHERBOND_MAPFILE=`basename $$i _bm.json`_io.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	rm -f ebcluster*.json
-# 
-# show: all
-# 	redeployer -redeployer-file  redeployer.json -emit-dot  -dot-detail 5 | dot -Txlib
-# 
-# .PHONY: dirsudpbond
-# dirsudpbond: bondmachines
-# 	for i in `ls ebcluster*bm.json` ; do mkdir `basename $$i _bm.json` ; cp -a `basename $$i _bm.json`_* `basename $$i _bm.json` ; cp ebcluster.json `basename $$i _bm.json` ; ln -s ../../Makefile `basename $$i _bm.json`/Makefile ; done
-# 	for i in `ls ebcluster*bm.json` ; do mkdir `basename $$i _bm.json`/working_dir ; done
-# 	for i in `ls ebcluster*bm.json` ; do cp basys3.xdc `basename $$i _bm.json`/ ; done
-# 	for i in `ls ebcluster*bm.json` ; do cp $(UDPBOND_NETCONFIG) `basename $$i _bm.json`/ ; done
-# 	for i in `ls ebcluster*bm.json` ; do cp $(UDPBOND_IPFILE) `basename $$i _bm.json`/ ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo 'WORKING_DIR=working_dir' > `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo 'CURRENT_DIR=$$(shell pwd)' >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "SOURCE_JSON=$$i" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "BOARD=$(BOARD)" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do PEER=`echo $$i | sed 's/\_bm\.json//' | sed 's/ebcluster\_//'` ; cat $(MAPFILE) | json $$PEER > `basename $$i _bm.json`/`basename $$i _bm.json`_residual.json ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "MAPFILE=`basename $$i _bm.json`_residual.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "ROOTDIR=../.." >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "USE_UDPBOND=yes" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "CLUSTER_SPEC=ebcluster.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do PEER=`echo $$i | sed 's/\_bm\.json//' | sed 's/ebcluster\_peer\_//'` ;  echo "PEER_ID=$$PEER" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "UDPBOND_MAPFILE=`basename $$i _bm.json`_io.json" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "UDPBOND_NETCONFIG=$(UDPBOND_NETCONFIG)" >> `basename $$i _bm.json`/local.mk ; done
-# 	for i in `ls ebcluster*bm.json` ; do echo "UDPBOND_IPFILE=$(UDPBOND_IPFILE)" >> `basename $$i _bm.json`/local.mk ; done
-# 	if [ "a$(EXTRA_INCLUDES_ARGS)" != "a" ] ; then for extra in "$(EXTRA_INCLUDES_ARGS)" ; do for i in `ls ebcluster*bm.json` ; do cp $$extra `basename $$i _bm.json`/ ; done ; done ; fi
-# 	if [ "a$(EXTRA_INCLUDES_ARGS)" != "a" ] ; then for extra in "$(EXTRA_INCLUDES_ARGS)" ; do for i in `ls ebcluster*bm.json` ; do  echo "include $$extra" >> `basename $$i _bm.json`/local.mk ; done ; done ; fi
-# 	rm -f ebcluster*.json
+.PHONY: showpaths
+showpaths:
+	@echo -e "$(PJP)$(INFOC)[BondMachine paths show begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	bondirect -bondirect-mesh $(BONDIRECT_MESH) -cluster-spec $(CLUSTER_SPEC) -show-paths
+	@echo -e "$(PJP)$(INFOC)[BondMachine paths show end]$(DEFC)"

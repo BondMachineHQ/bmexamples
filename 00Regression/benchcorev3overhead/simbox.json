@@ -1,0 +1,1 @@
+{"Rules":[{"Timec":1,"Tick":0,"Action":3,"Object":"show_pc","Extra":"","Suspended":false},{"Timec":1,"Tick":0,"Action":3,"Object":"show_disasm","Extra":"","Suspended":false},{"Timec":0,"Tick":2,"Action":0,"Object":"i0","Extra":"4","Suspended":false},{"Timec":1,"Tick":0,"Action":3,"Object":"show_ticks","Extra":"","Suspended":false}]}

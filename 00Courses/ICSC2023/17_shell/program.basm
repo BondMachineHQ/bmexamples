@@ -1,0 +1,120 @@
+%section code .romtext iomode:sync
+        entry _start    ; Entry point
+_start:
+	clr	r0
+	mov	ram:axiwritecount, r0 ; reset the AXI write counter to 0
+	mov	r0, ram:outbuff
+	mov	ram:axiwritep, r0 ; reset the AXI write pointer to the start of the buffer
+
+mainloop:
+
+; AXI read part, read 1 reg from AXI, if the system is within a read session (axireadcount > 0), the reg is stored in ram, and axireadcount is decremented
+; if the system is not within a read session, if the value is 0, the read is discarded, if the value > 0, the read session is started, the
+; value is stored in ram, and axireadcount is set to the value
+
+	i2rw	r0, i0
+	mov	r2, ram:axireadcount
+	mov	r1, ram:[r2]
+	jz	r1, axireadnotsession
+axireadsession:
+	mov	r2, ram:axireadp ; store r0 to the place pointed by axireadp
+	mov	r3, ram:[r2]
+	mov	ram:[r3], r0
+	dec	r1
+	jz	r1, setready
+	j	setreadydone
+setready:
+	inc	r1
+	mov	ram:readisready, r1
+	dec	r1
+setreadydone:
+	mov	ram:axireadcount, r1 ; save the new count
+	inc	r3
+	mov	ram:axireadp, r3 ; increment the AXI read pointer
+	j	endreadaxi
+axireadnotsession:
+	jz	r0, endreadaxi ; nothing to do
+	mov	ram:axireadcount, r0 ; start a read session and store the counter
+	mov	r2, ram:inbuff
+	mov	ram:[r2], r0 ; store the value of the counter also in the buffer
+	inc 	r2
+	mov	ram:axireadp, r2 ; reset the AXI read pointer to the start of the buffer (2nd byte)
+endreadaxi:
+
+
+; AXI write part, if the system is within a write session (axiwritecount > 0), the reg is read from ram, and axiwritecount is decremented
+; if the system is not within a write session, 0 is written to the AXI bus. The write session is started externally by writing the
+; number of registers to write to axiwritecount, and the data to write to the buffer outbuff
+
+	mov	r0, ram:axiwritecount
+	mov	r1, ram:[r0]
+	jz	r1, axiwritezero
+axiwritesession:
+	mov	r2, ram:axiwritep ; read the value from the buffer
+	mov	r0, ram:[r2]
+	mov	r2, ram:[r0]
+	r2owa	r2, o0
+	dec	r1
+	mov	ram:axiwritecount, r1 ; save the new count
+	inc	r0
+	mov	ram:axiwritep, r0 ; increment the AXI write pointer
+	j	endwriteaxi
+axiwritezero:
+	r2owa	r1, o0
+	mov	r0, ram:outbuff
+	mov	ram:axiwritep, r0 ; reset the AXI write pointer to the start of the buffer
+	j endwriteaxi
+
+endwriteaxi:
+
+
+	mov	r1, ram:readisready
+	mov	r0, ram:[r1]
+	jz	r0, mainloop
+	clr	r0
+	mov	ram:readisready, r0
+	; At this point, the data is ready to be read from the buffer inbuff.
+
+	; replicate the data to the output buffer
+	mov	r0, ram:inbuff
+	mov	r1, ram:outbuff
+	mov 	r2, ram:[r0]; r0 is the length of the buffer
+	inc	r2
+	mov	ram:axiwritecount, r2 ; save the new count
+replicate:
+	mov	r3, ram:[r0] 
+	mov	ram:[r1], r3
+	inc	r1
+	inc	r0
+	dec 	r2
+	jz	r2, endreplicate
+	j	replicate
+endreplicate:
+	j mainloop
+
+%endsection
+
+%section code2 .ramtext iomode:async
+        entry _start    ; Entry point
+_start:
+        clr     r0
+end:
+        jmp     end
+%endsection
+
+%section constants .ramdata
+        inbuff db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        outbuff db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	axireadp db 0x00
+	axireadcount db 0x00
+	axiwritep db 0x00
+	axiwritecount db 0x00
+	readisready db 0x00
+%endsection
+
+%meta cpdef	cpu	romcode: code, ramcode: code2, ramdata: constants, execmode: hy
+%meta ioatt     testioin cp: cpu, index:0, type:input
+%meta ioatt     testioin cp: bm, index:0, type:input
+%meta ioatt     testioout cp: cpu, index:0, type:output
+%meta ioatt     testioout cp: bm, index:0, type:output
+%meta bmdef	global registersize:16
