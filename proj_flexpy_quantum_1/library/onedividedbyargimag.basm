@@ -1,0 +1,25 @@
+;fragtester
+;sympy from sympy import *
+;sympy x = Symbol('x', real=True)
+;sympy symbols = [x]
+;sympy a=np.arange(-5,5,0.5)
+;sympy testRanges = {'real: x': list(a[a != 0]),
+;sympy     'imag: x': list(np.arange(-5,5,2)),
+;sympy     'real: y': list(np.arange(-5,5,2)),
+;sympy     'imag: y': list(np.arange(-5,5,2)),
+;sympy     }
+;sympy with evaluate(False):
+;sympy     spExpr = 1 / (x * I)
+;
+;
+; one divided by an imaginary number passed as argument
+; r0 is the imaginary coefficient of the divisor (x in x*I)
+; Result: 1/(x*I) = -I/x where x is in r0
+%fragment onedividedbyargimag template:true default_setop:rset resin:r0 resout:r0 default_prefix:0f
+	mov     r1, {{ .Params.prefix }}1.0 ; r1 = 1.0
+	{{ .Params.divop }}	r1, r0 ; r1 = 1.0 / x
+	{{ .Params.setop }}	r2, {{ .Params.prefix }}-1.0 ; r2 = -1
+	{{ .Params.multop }}	r1, r2 ; r1 = -1/x
+	cpy	r0, r1 ; move result to r0
+	nop	
+%endfragment
