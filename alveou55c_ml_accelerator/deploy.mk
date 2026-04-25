@@ -1,0 +1,11 @@
+DEPLOY_TYPE=ssh
+DEPLOY_HOST=zedbm
+DEPLOY_USER=xilinx
+DEPLOY_GROUP=xilinx
+DEPLOY_OVERRIDE=true
+DEPLOY_PATH=bmnotebooks/zedboard/axist/$(PROJECT_NAME)
+DEPLOY_CLONE=bmnotebooks/zedboard/axist/template
+DEPLOY_APP=working_dir/bmapi/notebook.ipynb
+DEPLOY_COLLECT=predictions.csv
+DEPLOY_RUN_COMMAND=sudo jupyter nbconvert --to notebook --execute notebook.ipynb ; sudo chown xilinx:xilinx predictions.csv notebook.nbconvert.ipynb sds_trace_data.dat
+SSH_ARGS=-i /home/administrator@physics.ad.cloud.unipg.it/.ssh
