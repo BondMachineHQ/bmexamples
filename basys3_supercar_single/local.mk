@@ -5,3 +5,6 @@ SHOWARGS=-dot-detail 5
 BASM_ARGS=-d -disable-dynamical-matching -bo $(WORKING_DIR)/bondmachine.bcof -chooser-min-word-size -chooser-force-same-name -create-mapfile basys3_maps.json
 BASM_LIB=library
 VERILOG_OPTIONS=-comment-verilog
+DEVICE_ID=localhost:3121/xilinx_tcf/Digilent/210183A8A23DA
+BY_SERIAL=/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210183A8A23D-if01-port0
+CABLE=digilent

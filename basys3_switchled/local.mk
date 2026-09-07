@@ -4,3 +4,6 @@ BOARD=basys3
 SHOWARGS=-dot-detail 5
 BASM_ARGS=-create-mapfile basys3_maps.json
 VERILOG_OPTIONS=-comment-verilog
+DEVICE_ID=localhost:3121/xilinx_tcf/Digilent/210183A8A23DA
+BY_SERIAL=/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210183A8A23D-if01-port0
+CABLE=digilent

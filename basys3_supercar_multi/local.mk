@@ -8,5 +8,5 @@ VERILOG_OPTIONS=-comment-verilog
 CLUSTER_SPEC=cluster.json
 USE_BONDIRECT=true
 BONDIRECT_MAPFILE=edgenode_maps.json
-BONDIRECT_MESH=home.json
+BONDIRECT_MESH=james.json
 CLUSTER=true
