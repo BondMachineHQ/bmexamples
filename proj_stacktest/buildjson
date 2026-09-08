@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cat <<EOF > program1.asm
+clr r0
+inc r0
+r2t r0 st0
+j 1
+EOF
+
+cat <<EOF > program2.asm
+clr r0
+t2r r0 st0
+r2o r0 o0
+j 0
+EOF
+
+
+rm -f processor1.json processor2.json stacktest.json 
+procbuilder -register-size 8 -registers 1 -inputs 0 -outputs 0 -opcodes clr,inc,j,r2t -save-machine processor1.json -input-assembly program1.asm -shared-constraints "stack:8"
+procbuilder -register-size 8 -registers 1 -inputs 0 -outputs 1 -opcodes clr,r2o,j,t2r -save-machine processor2.json -input-assembly program2.asm -shared-constraints "stack:8"
+bondmachine -bondmachine-file stacktest.json
+bondmachine -bondmachine-file stacktest.json -add-domains processor1.json
+bondmachine -bondmachine-file stacktest.json -add-domains processor2.json
+bondmachine -bondmachine-file stacktest.json -add-processor 0
+bondmachine -bondmachine-file stacktest.json -add-processor 1
+bondmachine -bondmachine-file stacktest.json -add-shared-objects "stack:8"
+bondmachine -bondmachine-file stacktest.json -connect-processor-shared-object 0,0
+bondmachine -bondmachine-file stacktest.json -connect-processor-shared-object 1,0
+bondmachine -bondmachine-file stacktest.json -add-outputs 1
+bondmachine -bondmachine-file stacktest.json -add-bond o0,p1o0
+bondmachine -bondmachine-file stacktest.json -emit-dot -dot-detail 5 | dot -Txlib
+rm -f processor1.json processor2.json program1.asm program2.asm

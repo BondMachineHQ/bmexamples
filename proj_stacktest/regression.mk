@@ -1,0 +1,2 @@
+HDL_REGRESSION=bondmachine.sv
+BM_REGRESSION=bondmachine.json

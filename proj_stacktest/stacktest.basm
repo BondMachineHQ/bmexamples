@@ -1,0 +1,33 @@
+%section code1 .romtext
+        entry _start    ; Entry point
+_start:
+
+        rset	r0, 8
+loop:
+	dec	r0
+	mov	st0, r0
+	jz	r0, halt
+        j loop
+halt:
+	j halt
+
+%endsection
+
+%section code2 .romtext iomode:async
+        entry _start    ; Entry point
+_start:
+	clr	r0
+	mov	r0, st0
+	mov	o0, r0
+        j _start
+
+%endsection
+
+%meta cpdef	cpu1	romcode: code1
+%meta cpdef	cpu2	romcode: code2
+%meta sodef	stack    constraint:stack:1
+%meta soatt	stack cp: cpu1, index:0
+%meta soatt	stack cp: cpu2, index:0
+%meta bmdef	global registersize:8
+%meta ioatt	testio1 cp: cpu2, index:0, type:output
+%meta ioatt	testio1 cp: bm, index:0, type:output
