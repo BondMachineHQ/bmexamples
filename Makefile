@@ -84,6 +84,10 @@ ifeq ($(ALTERA_BOARD_DE10NANO),y)
 	BOARD=de10nano
 endif
 
+ifeq ($(GOWIN_BOARD_TANGNANO20K),y)
+	BOARD=tangnano20k
+endif
+
 ##### Cluster or single target selection
 
 ifeq ($(CLUSTER),true)
@@ -147,6 +151,19 @@ ifeq ($(shell [[ $(BOARD) == "ice40lp1k" || $(BOARD) == "icefun" || $(BOARD) == 
 	IMPLEMENTATION_TARGET=$(WORKING_DIR)/icestorm_implementation
 	BITSTREAM_TARGET=$(WORKING_DIR)/icestorm_bitstream
 	PROGRAM_TARGET=$(WORKING_DIR)/icestorm_program
+endif
+
+ifeq ($(BOARD),tangnano20k)
+	BOARDOK=yes
+	TOOLCHAIN=gowin
+	PROJECT_TARGET=$(WORKING_DIR)/gowin_creation
+	SYNTHESIS_TARGET=$(WORKING_DIR)/gowin_synthesis
+	IMPLEMENTATION_TARGET=$(WORKING_DIR)/gowin_implementation
+	BITSTREAM_TARGET=$(WORKING_DIR)/gowin_bitstream
+	PROGRAM_TARGET=$(WORKING_DIR)/gowin_program
+	GOWIN_DEVICE=GW2AR-LV18QN88C8/I7
+	GOWIN_FAMILY=GW2A-18C
+	GOWIN_SYNTH_FAMILY=gw2a
 endif
 
 ifeq ($(shell [[ $(BOARD) == "icefun" ]] && echo true ),true)
@@ -1155,6 +1172,50 @@ endif
 
 	@touch $(WORKING_DIR)/icestorm_program
 	@echo -e "$(PJP)$(INFOC)[Icestorm toolchain - programming end]$(DEFC)"
+	@echo
+
+##### Gowin toolchain targets
+
+$(WORKING_DIR)/$(BOARD).cst: | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - copy constraints begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	cp $(BOARD).cst $(WORKING_DIR)
+	@touch $(WORKING_DIR)/constraint_target
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - copy constraints end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/gowin_creation: $(WORKING_DIR)/$(BOARD).cst $(WORKING_DIR)/hdl_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - project creation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	@touch $(WORKING_DIR)/gowin_creation
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - project creation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/gowin_synthesis: $(WORKING_DIR)/gowin_creation | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - synthesis begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	yosys -p "synth_gowin -family $(GOWIN_SYNTH_FAMILY) -top bondmachine_main; techmap; opt_clean -purge; write_json $(WORKING_DIR)/bondmachine_gowin.json" $(WORKING_DIR)/bondmachine.sv
+	@touch $(WORKING_DIR)/gowin_synthesis
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - synthesis end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/gowin_implementation: $(WORKING_DIR)/gowin_synthesis | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - implementation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	nextpnr-himbaechel --json $(WORKING_DIR)/bondmachine_gowin.json --write $(WORKING_DIR)/bondmachine_gowin_pnr.json --device $(GOWIN_DEVICE) --freq 27 --vopt family=$(GOWIN_FAMILY) --vopt cst=$(WORKING_DIR)/$(BOARD).cst
+	@touch $(WORKING_DIR)/gowin_implementation
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - implementation end]$(DEFC)"
+	@echo
+
+$(WORKING_DIR)/gowin_bitstream: $(WORKING_DIR)/gowin_implementation | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - write bitstream begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	gowin_pack -d $(GOWIN_FAMILY) -o $(WORKING_DIR)/bondmachine.fs $(WORKING_DIR)/bondmachine_gowin_pnr.json
+	@touch $(WORKING_DIR)/gowin_bitstream
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - write bitstream end]$(DEFC)"
+	@echo
+
+.PHONY: $(WORKING_DIR)/gowin_program
+$(WORKING_DIR)/gowin_program: $(WORKING_DIR)/gowin_bitstream | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - programming begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	openFPGALoader -b tangnano20k $(WORKING_DIR)/bondmachine.fs
+	@touch $(WORKING_DIR)/gowin_program
+	@echo -e "$(PJP)$(INFOC)[Gowin toolchain - programming end]$(DEFC)"
 	@echo
 
 ##### Vivado toolchain targets
