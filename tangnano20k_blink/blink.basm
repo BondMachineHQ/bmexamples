@@ -1,0 +1,13 @@
+%section code .romtext
+        entry _start    ; Entry point
+_start:
+        inc	r0
+	r2o	r0,o0
+        j	_start
+
+%endsection
+
+%meta cpdef	cpu	romcode: code
+%meta ioatt     testio cp: cpu, index:0, type:output
+%meta ioatt     testio cp: bm, index:0, type:output
+%meta bmdef	global registersize:1

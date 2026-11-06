@@ -126,6 +126,8 @@ menu "Board and toolchain"
 	    bool "Intel/Altera with Quartus"
 	config TOOLCHAIN_LATTICE
 	    bool "Lattice with icestorm"
+	config TOOLCHAIN_GOWIN
+	    bool "Gowin with open-source tools"
 	endchoice
 
 	choice SELECT_XILINX_BOARD
@@ -163,6 +165,13 @@ menu "Board and toolchain"
 	    bool "icebreaker"
 	config LATTICE_BOARD_ICESUGARNANO
 	    bool "icesugarnano"
+	endchoice
+
+	choice SELECT_GOWIN_BOARD
+	    depends on TOOLCHAIN_GOWIN
+	    prompt "Gowin board"
+	config GOWIN_BOARD_TANGNANO20K
+	    bool "Tang Nano 20K"
 	endchoice
 
 endmenu
