@@ -1588,6 +1588,13 @@ $(WORKING_DIR)/cluster_target: $(WORKING_DIR)/clustergeneration_target | $(WORKI
 	@touch $(WORKING_DIR)/cluster_target
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
 
+clusterhdl: $(WORKING_DIR)/clusterhdl_target
+$(WORKING_DIR)/clusterhdl_target: $(WORKING_DIR)/cluster_target | $(WORKING_DIR) checkenv
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine hdl generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+	for i in `ls -d working_dir/edgenode*` ; do make -C $$i hdl ; done
+	@touch $(WORKING_DIR)/clusterhdl_target
+	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine hdl generation end]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
+
 clusterbitstream: $(WORKING_DIR)/clusterbitstream_target
 $(WORKING_DIR)/clusterbitstream_target: $(WORKING_DIR)/cluster_target | $(WORKING_DIR) checkenv
 	@echo -e "$(PJP)$(INFOC)[Cluster BondMachine bitstream generation begin]$(DEFC) - $(WARNC)[Target: $@] $(DEFC)"
